@@ -33,7 +33,9 @@ export default function Home() {
         2xl:w-3/5"
         >
           <div className="text-4xl">MeuTreino</div>
-          <div className="text-center text-lg px-3 pt-5">Organize e potencialize seus treinos.</div>
+          <div className="text-center text-lg px-3 pt-5">
+            Organize e potencialize seus treinos.
+          </div>
           <div className="text-center text-lg px-3 pt-1">
             Crie, edite e acompanhe sua evolução com facilidade.
           </div>

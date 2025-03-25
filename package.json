@@ -3,7 +3,8 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
+    "dev": "next dev --turbo",
+    "clean": "rm -rf .next && next clean",
     "build": "next build",
     "start": "next start",
     "lint": "next lint"
@@ -33,12 +34,14 @@
     "react-hook-form": "^7.49.3",
     "react-query": "^3.39.3",
     "react-spinners": "^0.13.8",
-    "react-toastify": "^10.0.4",
+    "react-toastify": "^11.0.5",
     "tailwind-merge": "^2.5.2",
     "tailwindcss-animate": "^1.0.7",
     "zod": "^3.22.4"
   },
   "devDependencies": {
+    "@tailwindcss/forms": "^0.5.10",
+    "@tailwindcss/typography": "^0.5.16",
     "@types/node": "^20",
     "@types/react": "^18",
     "@types/react-dom": "^18",
