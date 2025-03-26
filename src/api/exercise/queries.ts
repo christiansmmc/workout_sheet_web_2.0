@@ -1,10 +1,10 @@
-import {AxiosError} from "axios";
-import {RequestError} from "@/api/interfaces/request";
-import {useQuery} from "react-query";
-import {useRouter} from "next/navigation";
-import {GetExercisesResponse} from "@/api/interfaces/exercise";
-import {toast} from "react-toastify";
-import {getExercisesRequest} from "@/api/exercise/api";
+import { AxiosError } from "axios";
+import { RequestError } from "@/api/interfaces/request";
+import { useQuery } from "react-query";
+import { useRouter } from "next/navigation";
+import { GetExercisesResponse } from "@/api/interfaces/exercise";
+import toastService from "@/utils/toast";
+import { getExercisesRequest } from "@/api/exercise/api";
 
 
 export const useGetExercisesQuery = (
@@ -13,7 +13,7 @@ export const useGetExercisesQuery = (
 ) => {
     const router = useRouter();
 
-    const {isLoading, data} = useQuery<GetExercisesResponse[], AxiosError<RequestError>>({
+    const { isLoading, data } = useQuery<GetExercisesResponse[], AxiosError<RequestError>>({
         queryKey: ["GetExercises"],
         queryFn: () => getExercisesRequest(bodyPart),
         enabled: fetchExercises,
@@ -22,7 +22,7 @@ export const useGetExercisesQuery = (
                 router.push("/login");
             }
 
-            toast.error("Erro ao buscar exercícios");
+            toastService.error("Erro ao buscar exercícios");
             router.push("/workout");
         },
     });

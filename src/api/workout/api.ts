@@ -1,15 +1,15 @@
-import {CreateWorkoutRequest, GetWorkoutExercisesResponse, GetWorkoutsResponse} from "@/api/interfaces/workout";
+import { CreateWorkoutRequest, GetWorkoutExercisesResponse, GetWorkoutsResponse } from "@/api/interfaces/workout";
 import api from "@/api/axiosConfig";
-import {AxiosResponse} from "axios";
-import {toast} from "react-toastify";
+import { AxiosResponse } from "axios";
+import toastService from "@/utils/toast";
 
 export const getWorkoutsRequest = async (): Promise<GetWorkoutsResponse[]> => {
-    const {data} = await api.get<GetWorkoutsResponse[]>(`/workouts`);
+    const { data } = await api.get<GetWorkoutsResponse[]>(`/workouts`);
     return data;
 };
 
 export const getExercisesFromWorkoutRequest = async (workoutId: number): Promise<GetWorkoutExercisesResponse> => {
-    const {data} = await api.get<GetWorkoutExercisesResponse>(`/workouts/${workoutId}`);
+    const { data } = await api.get<GetWorkoutExercisesResponse>(`/workouts/${workoutId}`);
     return data;
 };
 
@@ -18,7 +18,7 @@ export const removeExerciseFromWorkoutRequest = async (
 ): Promise<AxiosResponse> => {
     const promise = api.delete<void>(`/workout-exercises/${workoutExerciseId}`);
 
-    return await toast.promise(promise, {
+    return await toastService.promise(promise, {
         pending: "Removendo exercício...",
         success: "Exercício removido",
         error: "Erro removendo exercício",
@@ -32,7 +32,7 @@ export const updateExerciseLoadRequest = async (workoutExerciseId: number, load:
         reps
     });
 
-    return await toast.promise(promise, {
+    return await toastService.promise(promise, {
         pending: "Atualizando carga...",
         success: "Carga atualizada",
         error: "Erro atualizando carga",
@@ -40,9 +40,9 @@ export const updateExerciseLoadRequest = async (workoutExerciseId: number, load:
 };
 
 export const updateWorkoutRequest = async (workoutId: number, name: string): Promise<AxiosResponse> => {
-    const promise = api.patch<void>(`/workouts/${workoutId}`, {name});
+    const promise = api.patch<void>(`/workouts/${workoutId}`, { name });
 
-    return await toast.promise(promise, {
+    return await toastService.promise(promise, {
         pending: "Atualizando treino...",
         success: "Treino atualizado",
         error: "Erro atualizando treino",
@@ -52,7 +52,7 @@ export const updateWorkoutRequest = async (workoutId: number, name: string): Pro
 export const deleteWorkoutRequest = async (workoutId: number): Promise<AxiosResponse> => {
     const promise = api.delete<void>(`/workouts/${workoutId}`);
 
-    return await toast.promise(promise, {
+    return await toastService.promise(promise, {
         pending: "Deletando treino...",
         success: "Treino deletado",
         error: "Erro deletando treino",
@@ -62,11 +62,11 @@ export const deleteWorkoutRequest = async (workoutId: number): Promise<AxiosResp
 export const createWorkoutRequest = async (payload: CreateWorkoutRequest) => {
     const data = api.post(`/workouts`, payload);
 
-    await toast.promise(data, {
+    await toastService.promise(data, {
         pending: "Criando treino...",
         success: "Treino criado",
         error: "Erro criando treino",
     });
 
-    return {data};
+    return { data };
 };
