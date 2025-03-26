@@ -6,10 +6,10 @@ import { BeatLoader } from 'react-spinners';
 import ExerciseCard from '@/components/card/exerciseCard';
 import { useGetExercisesFromWorkoutQuery } from '@/api/workout/queries';
 
-export default function Page({params}: { params: { id: number } }) {
+export default function Page({ params }: { params: { id: number } }) {
     const router = useRouter();
 
-    const {isSuccess, data, remove} = useGetExercisesFromWorkoutQuery(params.id);
+    const { isSuccess, data, remove } = useGetExercisesFromWorkoutQuery(params.id);
 
     const handleGoBack = () => {
         router.push("/workout");
@@ -22,11 +22,11 @@ export default function Page({params}: { params: { id: number } }) {
                 <div
                     onClick={handleGoBack}
                     className='cursor-pointer p-1 active:bg-neutral-600 active:rounded lg:active:bg-neutral-600 lg:hover:bg-neutral-700 lg:hover:rounded'>
-                    <ArrowLeft size={32}/>
+                    <ArrowLeft size={32} />
                 </div>
                 <div
                     className='cursor-pointer p-1 active:bg-neutral-600 active:rounded lg:active:bg-neutral-600 lg:hover:bg-neutral-700 lg:hover:rounded'>
-                    <User size={32}/>
+                    <User size={32} />
                 </div>
             </header>
             <div
@@ -49,7 +49,7 @@ export default function Page({params}: { params: { id: number } }) {
                         ))
                 ) : (
                     <div className="absolute inset-0 flex items-center justify-center">
-                        <BeatLoader size={26} color="#dc2626"/>
+                        <BeatLoader size={26} color="#dc2626" />
                     </div>
                 )}
             </div>
