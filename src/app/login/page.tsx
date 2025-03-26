@@ -1,94 +1,156 @@
 'use client';
 
 import Link from 'next/link';
-import { useForm } from 'react-hook-form';
+import Image from 'next/image';
 import { z } from 'zod';
+import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { BeatLoader } from 'react-spinners';
-import ActionButton from '@/components/button/actionButton';
-import Image1 from '@/components/images/image1';
 import { useLoginMutation } from '@/api/user/queries';
 
-const loginUserFormSchema = z.object({
-  email: z.string().email('Formato de email inválido').toLowerCase(),
-  password: z.string(),
+// Validation Schema
+const loginSchema = z.object({
+  email: z.string({ required_error: 'Email é obrigatório' })
+    .email('Email inválido'),
+  password: z.string({ required_error: 'Senha é obrigatória' })
+    .min(6, 'Senha precisa ter pelo menos 6 caracteres')
+    .max(20, 'Senha não pode ter mais de 20 caracteres'),
 });
 
-type LoginUserFormData = z.infer<typeof loginUserFormSchema>;
+type LoginFormData = z.infer<typeof loginSchema>;
 
-export default function Page() {
+const FormInput = ({
+  label,
+  type = 'text',
+  error,
+  register,
+  placeholder
+}: {
+  label: keyof LoginFormData;
+  type?: string;
+  error?: { message?: string };
+  register: any;
+  placeholder: string;
+}) => (
+  <div className="w-full mb-4">
+    <input
+      className="w-full px-4 py-3 bg-zinc-800 rounded-lg 
+                 text-white placeholder-zinc-500
+                 focus:outline-none focus:ring-2 focus:ring-red-500
+                 transition-all duration-300"
+      type={type}
+      placeholder={placeholder}
+      {...register(label)}
+    />
+    {error && (
+      <span className="text-sm text-red-500 ml-2 mt-1 block">
+        {error.message}
+      </span>
+    )}
+  </div>
+);
+
+export default function LoginPage() {
   const {
     register,
     handleSubmit,
     formState: { errors },
-  } = useForm<LoginUserFormData>({
-    resolver: zodResolver(loginUserFormSchema),
+  } = useForm<LoginFormData>({
+    resolver: zodResolver(loginSchema),
   });
 
   const { mutate, isLoading } = useLoginMutation();
 
-  const loginUser = (data: LoginUserFormData) => {
-    mutate(data);
+  const onSubmit = (data: LoginFormData) => {
+    mutate({
+      email: data.email,
+      password: data.password,
+    });
   };
 
   return (
-    <main className="flex flex-col h-full lg:flex-row">
-      <div
-        className={'w-full flex flex-1 ' + 'lg:flex lg:justify-end lg:border-r-2 lg:border-zinc-800 lg:px-28'}
-      >
-        <Image1 className={'lg:w-full'} />
+    <div className="min-h-screen flex flex-col lg:flex-row">
+      {/* Mobile & Tablet Image Section */}
+      <div className="block lg:hidden w-full h-64 relative">
+        <Image
+          src="/images/login-banner.jpg"
+          alt="Fitness Login"
+          fill
+          className="absolute inset-0 object-cover filter grayscale"
+          priority
+        />
       </div>
-      <div
-        className={
-          'w-full flex flex-col items-center gap-4 pb-6 ' + 'lg:flex-1 lg:justify-center lg:gap-6 lg:px-28"'
-        }
-      >
-        <p className={'text-4xl w-96 text-center'}>Acesse sua conta</p>
-        <form onSubmit={handleSubmit(loginUser)} className={'flex flex-col gap-6'}>
-          <div className={'w-96'}>
-            <input
-              className={`bg-zinc-800 rounded-lg h-12 px-3 text-lg w-full ${
-                errors.email && 'outline-red-500'
-              }`}
-              placeholder={'Email'}
-              type={'email'}
-              {...register('email')}
-            />
-            {errors.email && <span className={'text-sm text-red-500 ml-2'}>{errors.email.message}</span>}
-          </div>
-          <div className={'w-96'}>
-            <input
-              className={`bg-zinc-800 rounded-lg h-12 px-3 text-lg w-full ${
-                errors.password && 'outline-red-500'
-              }`}
-              placeholder={'Senha'}
-              type={'password'}
-              {...register('password')}
-            />
-            {errors.password && (
-              <span className={'text-sm text-red-500 ml-2'}>{errors.password.message}</span>
-            )}
-            <p className={'text-end text-sm pt-1'}>
-              <span className={'underline cursor-pointer'}>Esqueceu sua senha?</span>
-            </p>
-          </div>
-          <div className={'w-96'}>
-            {!isLoading ? (
-              <ActionButton>
-                Entrar
-              </ActionButton>
-            ) : (
-              <BeatLoader className={'text-center w-full'} color="#dc2626" />
-            )}
-            <p className={'text-end text-sm pt-1'}>
-              Ainda não tem conta?
-              <Link className={'underline cursor-pointer'} href={'/register'}>
-                clique aqui
-              </Link>
-            </p>
-          </div>
-        </form>
+
+      {/* Desktop Image Section */}
+      <div className="hidden lg:block lg:w-1/2 relative">
+        <Image
+          src="/images/login-banner.jpg"
+          alt="Fitness Login"
+          fill
+          className="absolute inset-0 object-cover filter grayscale"
+          priority
+        />
       </div>
-    </main>
+
+      {/* Form Section */}
+      <div className="w-full lg:w-1/2 flex items-center justify-center 
+                      px-6 py-12 lg:px-16 xl:px-24">
+        <div className="w-full max-w-md">
+          <h1 className="text-3xl md:text-4xl font-bold text-center mb-8">
+            Acesse sua conta
+          </h1>
+
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+            <FormInput
+              label="email"
+              placeholder="Email"
+              register={register}
+              error={errors.email}
+            />
+            <FormInput
+              label="password"
+              type="password"
+              placeholder="Senha"
+              register={register}
+              error={errors.password}
+            />
+
+            <p className="text-end text-sm">
+              <span className="text-red-600 hover:underline cursor-pointer">
+                Esqueceu sua senha?
+              </span>
+            </p>
+
+            <div className="mt-6">
+              {!isLoading ? (
+                <button
+                  type="submit"
+                  className="w-full bg-red-600 text-white 
+                             py-3 rounded-lg hover:bg-red-700 
+                             transition-colors duration-300
+                             active:scale-95 transform"
+                >
+                  Entrar
+                </button>
+              ) : (
+                <div className="flex justify-center w-full">
+                  <BeatLoader color="#dc2626" />
+                </div>
+              )}
+
+              <p className="text-center text-sm mt-4">
+                Ainda não tem uma conta?{' '}
+                <Link
+                  href="/register"
+                  className="text-red-600 hover:underline font-semibold"
+                >
+                  Cadastre-se
+                </Link>
+              </p>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
   );
 }

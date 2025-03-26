@@ -9,32 +9,28 @@ import { BeatLoader } from 'react-spinners';
 import { useRegisterMutation } from '@/api/user/queries';
 
 // Validation Schema
-const registrationSchema = z
-  .object({
-    name: z.string().min(2, 'Nome precisa ter pelo menos 2 caracteres'),
-    height: z.string().refine(val => {
+const registrationSchema = z.object({
+  name: z.string().optional(),
+  height: z.string()
+    .optional()
+    .refine(val => {
+      if (!val) return true; // Allow empty
       const numVal = Number(val.replace(',', '.'));
-      return !isNaN(numVal) && numVal > 0 && numVal < 3;
-    }, { message: 'Altura inválida' }),
-    weight: z.string().refine(val => {
+      return !isNaN(numVal) && numVal > 0 && numVal < 300;
+    }, { message: 'Altura inválida (ex: 175 ou 1,75)' }),
+  weight: z.string()
+    .optional()
+    .refine(val => {
+      if (!val) return true; // Allow empty
       const numVal = Number(val);
       return !isNaN(numVal) && numVal > 0 && numVal < 300;
     }, { message: 'Peso inválido' }),
-    email: z.string().email('Email inválido'),
-    password: z.string()
-      .min(6, 'Senha precisa de pelo menos 6 caracteres')
-      .max(20, 'Senha não pode ter mais de 20 caracteres'),
-    confirmPassword: z.string(),
-  })
-  .superRefine(({ confirmPassword, password }, ctx) => {
-    if (confirmPassword !== password) {
-      ctx.addIssue({
-        code: 'custom',
-        path: ['confirmPassword'],
-        message: 'As senhas não coincidem',
-      });
-    }
-  });
+  email: z.string({ required_error: 'Email é obrigatório' })
+    .email('Email inválido'),
+  password: z.string({ required_error: 'Senha é obrigatória' })
+    .min(6, 'Senha precisa ter pelo menos 6 caracteres')
+    .max(20, 'Senha não pode ter mais de 20 caracteres'),
+});
 
 type RegistrationFormData = z.infer<typeof registrationSchema>;
 
@@ -43,13 +39,15 @@ const FormInput = ({
   type = 'text',
   error,
   register,
-  placeholder
+  placeholder,
+  hint
 }: {
   label: keyof RegistrationFormData;
   type?: string;
   error?: { message?: string };
   register: any;
   placeholder: string;
+  hint?: string;
 }) => (
   <div className="w-full mb-4">
     <input
@@ -61,6 +59,11 @@ const FormInput = ({
       placeholder={placeholder}
       {...register(label)}
     />
+    {hint && (
+      <span className="text-sm text-zinc-400 ml-2 mt-1 block">
+        {hint}
+      </span>
+    )}
     {error && (
       <span className="text-sm text-red-500 ml-2 mt-1 block">
         {error.message}
@@ -82,9 +85,13 @@ export default function RegistrationPage() {
 
   const onSubmit = (data: RegistrationFormData) => {
     mutate({
-      firstName: data.name,
-      height: Number(data.height.replace(',', '.')),
-      weight: Number(data.weight),
+      firstName: data.name || '',
+      height: data.height
+        ? Number(data.height.replace(',', '.'))
+        : undefined,
+      weight: data.weight
+        ? Number(data.weight)
+        : undefined,
       user: {
         email: data.email,
         password: data.password,
@@ -103,7 +110,6 @@ export default function RegistrationPage() {
           className="absolute inset-0 object-cover filter grayscale"
           priority
         />
-
       </div>
 
       {/* Desktop Image Section */}
@@ -131,14 +137,16 @@ export default function RegistrationPage() {
               placeholder="Nome completo"
               register={register}
               error={errors.name}
+              hint="Opcional"
             />
             <div className="flex space-x-4">
               <div className="w-1/2">
                 <FormInput
                   label="height"
-                  placeholder="Altura (m)"
+                  placeholder="Altura (cm)"
                   register={register}
                   error={errors.height}
+                  hint="Opcional"
                 />
               </div>
               <div className="w-1/2">
@@ -147,6 +155,7 @@ export default function RegistrationPage() {
                   placeholder="Peso (kg)"
                   register={register}
                   error={errors.weight}
+                  hint="Opcional"
                 />
               </div>
             </div>
@@ -162,13 +171,6 @@ export default function RegistrationPage() {
               placeholder="Senha"
               register={register}
               error={errors.password}
-            />
-            <FormInput
-              label="confirmPassword"
-              type="password"
-              placeholder="Confirmar senha"
-              register={register}
-              error={errors.confirmPassword}
             />
 
             <div className="mt-6">
