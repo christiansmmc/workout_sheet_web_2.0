@@ -1,14 +1,16 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { CreateWorkoutRequest } from '@/api/interfaces/workout';
 import { useGetExercisesQuery } from '@/api/exercise/queries';
 import { useCreateWorkoutMutation } from '@/api/workout/queries';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Check } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { capitalize } from '@/utils/stringUtils';
 import ActionButton from '@/components/button/actionButton';
 import { MoonLoader } from 'react-spinners';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import { cn } from '@/lib/utils';
 
 const bodyParts = ['PEITO', 'BICEPS', 'COSTAS', 'TRICEPS', 'OMBRO', 'PERNA'];
 
@@ -22,92 +24,77 @@ export default function Page() {
   const router = useRouter();
 
   const [fetchExercises, setFetchExercises] = useState(false);
-
-  const [steps, setSteps] = useState({
-    bodyPartsSelected: false,
-    setsRepsSelected: false,
-    exercisesSelected: false,
-    detailsSelected: false,
-  });
+  const [currentStep, setCurrentStep] = useState(1);
+  const [successDialogOpen, setSuccessDialogOpen] = useState(false);
 
   const [workoutBodyParts, setWorkoutBodyParts] = useState<string[]>([]);
-
   const [workoutSetsReps, setWorkoutSetsReps] = useState<string>();
   const [workoutReps, setWorkoutReps] = useState<number>(0);
   const [workoutSets, setWorkoutSets] = useState<number>(0);
-
   const [workoutExercises, setWorkoutExercises] = useState<number[]>([]);
+  const [workoutName, setWorkoutName] = useState<string>('');
 
-  const [workoutName, setWorkoutName] = useState<string>();
+  const { isLoading, data: exercises } = useGetExercisesQuery(fetchExercises, workoutBodyParts);
 
-  const {
-    isLoading,
-    data,
-  } = useGetExercisesQuery(fetchExercises, workoutBodyParts);
+  const { mutate: mutateCreateWorkout, isLoading: isLoadingCreateWorkout } = useCreateWorkoutMutation();
 
-  const {
-    mutate: mutateCreateWorkout,
-    isLoading: isLoadingCreateWorkout,
-  } = useCreateWorkoutMutation();
+  // Limpa os exercícios selecionados quando os músculos selecionados mudam
+  useEffect(() => {
+    setWorkoutExercises([]);
+  }, [workoutBodyParts]);
 
-  const handleSelectBodyParts = (bodyPart: string) => {
+  const handleSelectBodyParts = useCallback((bodyPart: string) => {
     setWorkoutBodyParts(prevState =>
       prevState.includes(bodyPart)
         ? prevState.filter(item => item !== bodyPart)
         : [...prevState, bodyPart],
     );
-  };
+  }, []);
 
-  const handleFinishBodyPartsStep = () => {
-    if (workoutBodyParts.length <= 0) {
+  const handleNextStep = useCallback(() => {
+    if (currentStep === 1 && workoutBodyParts.length === 0) return;
+    if (currentStep === 2 && !workoutSetsReps) return;
+    if (currentStep === 3 && workoutExercises.length === 0) return;
+    if (currentStep === 4 && (!workoutName || workoutName.trim().length === 0)) return;
+
+    if (currentStep === 2) {
+      setFetchExercises(true);
+    }
+
+    if (currentStep === 4) {
+      const createWorkoutRequest: CreateWorkoutRequest = {
+        workoutName: workoutName,
+        exercises: workoutExercises.map(exerciseId => ({ exerciseId, reps: workoutReps, sets: workoutSets })),
+      };
+      mutateCreateWorkout(createWorkoutRequest, {
+        onSuccess: () => {
+          setSuccessDialogOpen(true);
+        }
+      });
       return;
     }
 
-    setSteps({ ...steps, bodyPartsSelected: true });
-  };
+    setCurrentStep(prev => prev + 1);
+  }, [currentStep, workoutBodyParts, workoutSetsReps, workoutExercises, workoutName, workoutReps, workoutSets, mutateCreateWorkout]);
 
-  const handleFinishWorkoutSetsRepsStep = () => {
-    setFetchExercises(true);
-    setSteps({ ...steps, setsRepsSelected: true });
-  };
-
-  const handleSelectExercise = (exercise: number) => {
-    setWorkoutExercises(prevState =>
-      prevState.includes(exercise)
-        ? prevState.filter(item => item !== exercise)
-        : [...prevState, exercise],
-    );
-  };
-
-  const handleFinishWorkoutExercisesStep = () => {
-    if (workoutExercises.length <= 0) {
-      return;
+  const handlePreviousStep = useCallback(() => {
+    if (currentStep > 1) {
+      if (currentStep === 3) {
+        setWorkoutExercises([]);
+        setFetchExercises(false);
+      }
+      setCurrentStep(prev => prev - 1);
     }
-
-    setSteps({ ...steps, exercisesSelected: true });
-  };
-
-  const handleFinishWorkoutDetailsStep = () => {
-    if (!workoutName || workoutName.length === 0) {
-      return;
-    }
-
-    const createWorkoutRequest: CreateWorkoutRequest = {
-      workoutName: workoutName,
-      exercises: workoutExercises.map(exerciseId => ({ exerciseId, reps: workoutReps, sets: workoutSets })),
-    };
-
-    mutateCreateWorkout(createWorkoutRequest);
-  };
+  }, [currentStep]);
 
   const handleGoBack = () => {
     router.push('/workout');
   };
 
-  const handleSetWorkoutSetsReps = (workoutSetRepTypeSelected: workoutSetRepType) => {
-    setWorkoutSetsReps(workoutSetRepTypeSelected);
+  const handleSetWorkoutSetsReps = useCallback((selectedType: workoutSetRepType) => {
+    setWorkoutSetsReps(selectedType);
 
-    switch (workoutSetRepTypeSelected) {
+    switch (selectedType) {
       case workoutSetRepType.THREE_FIFTEEN:
         setWorkoutSets(3);
         setWorkoutReps(15);
@@ -121,180 +108,305 @@ export default function Page() {
         setWorkoutReps(0);
         break;
     }
-  };
+  }, []);
+
+  const handleSelectExercise = useCallback((exerciseId: number) => {
+    setWorkoutExercises(prevState =>
+      prevState.includes(exerciseId)
+        ? prevState.filter(id => id !== exerciseId)
+        : [...prevState, exerciseId],
+    );
+  }, []);
+
+  const getBodyPartColor = useCallback((bodyPart: string) => {
+    switch (bodyPart) {
+      case 'PEITO': return 'bg-teal-500';
+      case 'TRICEPS': return 'bg-blue-500';
+      case 'OMBRO': return 'bg-emerald-500';
+      case 'PERNA': return 'bg-amber-500';
+      case 'COSTAS': return 'bg-pink-500';
+      case 'BICEPS': return 'bg-violet-500';
+      default: return 'bg-zinc-600';
+    }
+  }, []);
+
+  const handleSuccessDialogClose = useCallback(() => {
+    router.push('/workout');
+  }, [router]);
+
+  // Adicionando um useEffect para controlar o redirecionamento após o modal ser exibido
+  useEffect(() => {
+    // Se o modal estiver aberto, não redireciona
+    // Esta flag será usada para evitar que o redirecionamento da mutação funcione
+  }, [successDialogOpen]);
 
   return (
-    <main className="h-full flex flex-col">
-      <header className="flex flex-shrink-1 items-center justify-between px-10 bg-zinc-800 h-16 shadow-lg">
-        <div
-          onClick={handleGoBack}
-          className="cursor-pointer p-1 active:bg-neutral-600 active:rounded lg:active:bg-neutral-600 lg:hover:bg-neutral-700 lg:hover:rounded">
-          <ArrowLeft size={32} />
+    <main className="min-h-screen flex flex-col bg-zinc-900">
+      {/* Header */}
+      <header className="flex items-center justify-between px-4 sm:px-6 lg:px-10 bg-zinc-800 h-16 shadow-lg">
+        <button
+          onClick={handlePreviousStep}
+          disabled={currentStep === 1}
+          className={cn(
+            "flex items-center gap-1 px-3 py-1.5 rounded-md transition-colors duration-200",
+            currentStep > 1
+              ? "text-white bg-zinc-700/50 hover:bg-zinc-700 active:bg-zinc-600"
+              : "text-zinc-500 bg-zinc-800 cursor-not-allowed"
+          )}
+        >
+          <ArrowLeft size={18} />
+          <span className="text-sm">Voltar</span>
+        </button>
+
+        <div className="flex items-center bg-zinc-700/30 px-3 py-1 rounded-md">
+          <span className="text-sm text-zinc-300">Passo {currentStep}/4</span>
         </div>
+
+        <button
+          onClick={handleGoBack}
+          className="flex items-center gap-1 px-3 py-1.5 rounded-md bg-zinc-700/50 text-white hover:bg-zinc-700 active:bg-zinc-600 transition-colors duration-200"
+        >
+          <span className="text-sm">Cancelar</span>
+        </button>
       </header>
 
-      {!steps.bodyPartsSelected ? (
-        <>
-          <div className="flex flex-1 flex-col justify-center gap-16">
-            <div className="text-3xl text-center">
-              Escolha que músculos vão ser trabalhados nesse treino
-            </div>
-            <div className="flex justify-center items-center flex-wrap gap-3">
+      {/* Progress Bar */}
+      <div className="w-full bg-zinc-800 h-1.5">
+        <div
+          className="bg-red-600 h-full transition-all duration-300 ease-in-out"
+          style={{ width: `${currentStep * 25}%` }}
+        />
+      </div>
+
+      {/* Content */}
+      <div className="flex-1 flex flex-col p-4 sm:p-6 max-w-3xl mx-auto w-full">
+        {/* Step 1: Selecionar Músculos */}
+        {currentStep === 1 && (
+          <div className="flex flex-col flex-1 gap-6 sm:gap-8">
+            <h1 className="text-2xl sm:text-3xl font-bold text-center mt-4 sm:mt-6">
+              Quais músculos serão trabalhados?
+            </h1>
+            <div className="flex justify-center items-center flex-wrap gap-3 mt-4">
               {bodyParts.map((bodyPart, index) => {
                 const isSelected = workoutBodyParts.includes(bodyPart);
-
                 return (
                   <div
                     key={index}
                     onClick={() => handleSelectBodyParts(bodyPart)}
-                    className={`flex justify-center items-center w-28 h-12 text-lg rounded border cursor-pointer active:bg-red-600 active:border-red-700 lg:active:bg-red-600 lg:active:border-red-600 lg:hover:bg-red-700 lg:hover:border-red-700 ${
-                      isSelected ? 'bg-red-600 border-red-600' : 'border-neutral-700 bg-neutral-800'
-                    }`}>
+                    className={cn(
+                      "flex justify-center items-center w-[calc(50%-0.5rem)] sm:w-36 h-14 text-lg rounded-lg border transition-colors duration-200 cursor-pointer",
+                      isSelected
+                        ? "bg-red-600 border-red-600 shadow-md"
+                        : "bg-zinc-800 border-zinc-700 hover:bg-zinc-700"
+                    )}
+                  >
                     {capitalize(bodyPart)}
                   </div>
                 );
               })}
             </div>
           </div>
-          <div className="flex justify-center mb-6">
-            <ActionButton onClick={handleFinishBodyPartsStep}>Continuar</ActionButton>
-          </div>
-        </>
-      ) : !steps.setsRepsSelected ? (
-        <>
-          <div className="flex flex-1 flex-col justify-center gap-16">
-            <div className="text-3xl text-center">
-              Quantas séries e repetições cada exercício terá?
-            </div>
-            <div className="relative flex justify-center items-center flex-wrap gap-3">
-              <div
-                onClick={() => handleSetWorkoutSetsReps(workoutSetRepType.THREE_FIFTEEN)}
-                className={`${
-                  workoutSetsReps === workoutSetRepType.THREE_FIFTEEN
-                    ? 'bg-red-600 border-red-600'
-                    : 'bg-neutral-800 border-neutral-700'
-                } flex justify-center items-center w-28 h-12 text-lg rounded border cursor-pointer active:bg-red-600 active:border-red-700 lg:active:bg-red-600 lg:active:border-red-600 lg:hover:bg-red-700 lg:hover:border-red-700`}>
-                3x15
+        )}
+
+        {/* Step 2: Séries e Repetições */}
+        {currentStep === 2 && (
+          <div className="flex flex-col flex-1 gap-6 sm:gap-8">
+            <h1 className="text-2xl sm:text-3xl font-bold text-center mt-4 sm:mt-6">
+              Quantas séries e repetições?
+            </h1>
+            <div className="relative flex flex-col items-center gap-4 mt-4">
+              <div className="flex justify-center items-center gap-3 w-full">
+                <div
+                  onClick={() => handleSetWorkoutSetsReps(workoutSetRepType.THREE_FIFTEEN)}
+                  className={cn(
+                    "flex justify-center items-center w-[calc(33%-0.5rem)] h-14 text-lg rounded-lg border transition-colors duration-200 cursor-pointer",
+                    workoutSetsReps === workoutSetRepType.THREE_FIFTEEN
+                      ? "bg-red-600 border-red-600 shadow-md"
+                      : "bg-zinc-800 border-zinc-700 hover:bg-zinc-700"
+                  )}
+                >
+                  3x15
+                </div>
+                <div
+                  onClick={() => handleSetWorkoutSetsReps(workoutSetRepType.FOUR_TWELVE)}
+                  className={cn(
+                    "flex justify-center items-center w-[calc(33%-0.5rem)] h-14 text-lg rounded-lg border transition-colors duration-200 cursor-pointer",
+                    workoutSetsReps === workoutSetRepType.FOUR_TWELVE
+                      ? "bg-red-600 border-red-600 shadow-md"
+                      : "bg-zinc-800 border-zinc-700 hover:bg-zinc-700"
+                  )}
+                >
+                  4x12
+                </div>
+                <div
+                  onClick={() => handleSetWorkoutSetsReps(workoutSetRepType.OTHER)}
+                  className={cn(
+                    "flex justify-center items-center w-[calc(33%-0.5rem)] h-14 text-lg rounded-lg border transition-colors duration-200 cursor-pointer",
+                    workoutSetsReps === workoutSetRepType.OTHER
+                      ? "bg-red-600 border-red-600 shadow-md"
+                      : "bg-zinc-800 border-zinc-700 hover:bg-zinc-700"
+                  )}
+                >
+                  Outro
+                </div>
               </div>
-              <div
-                onClick={() => handleSetWorkoutSetsReps(workoutSetRepType.FOUR_TWELVE)}
-                className={`${
-                  workoutSetsReps === workoutSetRepType.FOUR_TWELVE
-                    ? 'bg-red-600 border-red-600'
-                    : 'bg-neutral-800 border-neutral-700'
-                } flex justify-center items-center w-28 h-12 text-lg rounded border cursor-pointer active:bg-red-600 active:border-red-700 lg:active:bg-red-600 lg:active:border-red-600 lg:hover:bg-red-700 lg:hover:border-red-700`}>
-                4x12
-              </div>
-              <div
-                onClick={() => handleSetWorkoutSetsReps(workoutSetRepType.OTHER)}
-                className={`${
-                  workoutSetsReps === workoutSetRepType.OTHER
-                    ? 'bg-red-600 border-red-600'
-                    : 'bg-neutral-800 border-neutral-700'
-                } flex justify-center items-center w-28 h-12 text-lg rounded border cursor-pointer active:bg-red-600 active:border-red-700 lg:active:bg-red-600 lg:active:border-red-600 lg:hover:bg-red-700 lg:hover:border-red-700`}>
-                Outro
-              </div>
+
               {workoutSetsReps === workoutSetRepType.OTHER && (
-                <div className="w-full absolute top-28 flex flex-col justify-center items-center gap-7">
-                  <div className="flex justify-between w-2/3 border-b text-2xl">
-                    <div className="flex items-end pb-2">Séries:</div>
-                    <div className="pb-2">
-                      <input
-                        type="number"
-                        placeholder={workoutSets.toString()}
-                        onChange={(e) => setWorkoutSets(Number(e.target.value))}
-                        className="w-16 h-10 rounded-lg text-center text-xl bg-neutral-700"
-                      />
-                    </div>
+                <div className="w-full mt-6 flex flex-col gap-6 max-w-md mx-auto">
+                  <div className="flex items-center justify-between w-full border-b border-zinc-700 pb-3">
+                    <label className="text-lg text-zinc-300">Séries:</label>
+                    <input
+                      type="number"
+                      value={workoutSets || ''}
+                      onChange={(e) => setWorkoutSets(Number(e.target.value))}
+                      className="w-20 h-12 rounded-lg text-center text-lg bg-zinc-800 border border-zinc-700 focus:outline-none focus:ring-2 focus:ring-red-500 transition-colors duration-200"
+                    />
                   </div>
-                  <div className="flex justify-between w-2/3 border-b text-2xl">
-                    <div className="flex items-end pb-2">Repetições:</div>
-                    <div className="pb-2">
-                      <input
-                        type="number"
-                        placeholder={workoutReps.toString()}
-                        onChange={(e) => setWorkoutReps(Number(e.target.value))}
-                        className="w-16 h-10 rounded-lg text-center text-xl bg-neutral-700"
-                      />
-                    </div>
+                  <div className="flex items-center justify-between w-full border-b border-zinc-700 pb-3">
+                    <label className="text-lg text-zinc-300">Repetições:</label>
+                    <input
+                      type="number"
+                      value={workoutReps || ''}
+                      onChange={(e) => setWorkoutReps(Number(e.target.value))}
+                      className="w-20 h-12 rounded-lg text-center text-lg bg-zinc-800 border border-zinc-700 focus:outline-none focus:ring-2 focus:ring-red-500 transition-colors duration-200"
+                    />
                   </div>
                 </div>
               )}
             </div>
           </div>
-          <div className="flex justify-center mb-6">
-            <ActionButton onClick={handleFinishWorkoutSetsRepsStep}>Continuar</ActionButton>
-          </div>
-        </>
-      ) : !steps.exercisesSelected ? (
-        <>
-          <div className="flex flex-col flex-1 pt-3 mb-3 gap-5 h-[calc(100%-11rem)]">
-            <div className="text-3xl text-center">Escolha os exercícios que estarão no treino</div>
-            <div className="flex flex-col flex-1 gap-3 px-2 py-1 overflow-y-auto border-b border-t border-neutral-600">
-              {isLoading &&
-                <div className="absolute bottom-14 top-1/2 left-1/2 transform -translate-y-1/2 -translate-x-1/2">
-                  <MoonLoader color="#dc2626" />
-                </div>
-              }
-              {data?.map((exercise, index) => {
-                const isSelected = workoutExercises.includes(exercise.id);
+        )}
 
-                return (
-                  <div
-                    key={index}
-                    onClick={() => handleSelectExercise(exercise.id)}
-                    className={`flex justify-between items-center py-6 px-4 rounded-lg ${
-                      isSelected ? 'bg-zinc-700 border border-red-600' : 'bg-zinc-800 border border-zinc-600'
-                    }`}>
-                    <div className="text-lg">{capitalize(exercise.name)}</div>
-                    <div
-                      className={`${
-                        exercise.bodyPart === 'PEITO'
-                          ? 'bg-teal-500'
-                          : exercise.bodyPart === 'TRICEPS'
-                            ? 'bg-blue-500'
-                            : exercise.bodyPart === 'OMBRO'
-                              ? 'bg-emerald-500'
-                              : exercise.bodyPart === 'PERNA'
-                                ? 'bg-amber-500'
-                                : exercise.bodyPart === 'COSTAS'
-                                  ? 'bg-pink-500'
-                                  : exercise.bodyPart === 'BICEPS'
-                                    ? 'bg-violet-500'
-                                    : 'bg-zinc-600'
-                      } flex justify-center items-center h-8 w-1/5 rounded text-sm lg:w-24`}>
-                      {exercise.bodyPart}
-                    </div>
-                  </div>
-                );
-              })}
+        {/* Step 3: Selecionar Exercícios */}
+        {currentStep === 3 && (
+          <div className="flex flex-col flex-1 gap-4 sm:gap-6 h-full">
+            <h1 className="text-2xl sm:text-3xl font-bold text-center mt-4 sm:mt-6">
+              Escolha os exercícios
+            </h1>
+
+            {isLoading ? (
+              <div className="flex-1 flex items-center justify-center">
+                <MoonLoader color="#dc2626" />
+              </div>
+            ) : (
+              <div className="h-[calc(100vh-280px)] sm:h-[calc(100vh-300px)] overflow-y-auto mt-4 px-1">
+                <div className="flex flex-col gap-3 pb-2">
+                  {exercises?.map((exercise, index) => {
+                    const isSelected = workoutExercises.includes(exercise.id);
+
+                    return (
+                      <div
+                        key={index}
+                        onClick={() => handleSelectExercise(exercise.id)}
+                        className={cn(
+                          "flex justify-between items-center p-4 rounded-lg transition-all duration-200 cursor-pointer relative overflow-hidden",
+                          isSelected
+                            ? "bg-zinc-700 border border-green-500 shadow-md"
+                            : "bg-zinc-800 border border-zinc-700 hover:bg-zinc-700"
+                        )}
+                      >
+                        {isSelected && (
+                          <div className="absolute top-0 left-0 w-2 h-full bg-green-500" />
+                        )}
+                        <div className="text-base sm:text-lg font-medium">{capitalize(exercise.name)}</div>
+                        <div className="flex items-center gap-3">
+                          <div
+                            className={cn(
+                              getBodyPartColor(exercise.bodyPart),
+                              "flex justify-center items-center h-8 px-3 sm:px-4 rounded-lg text-xs sm:text-sm font-medium"
+                            )}
+                          >
+                            {exercise.bodyPart}
+                          </div>
+                          {isSelected && (
+                            <div className="flex items-center justify-center rounded-full bg-green-500 w-6 h-6 text-white shadow-sm">
+                              <Check size={14} strokeWidth={3} />
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Step 4: Nome do Treino */}
+        {currentStep === 4 && (
+          <div className="flex flex-col flex-1 gap-6 sm:gap-8">
+            <h1 className="text-2xl sm:text-3xl font-bold text-center mt-4 sm:mt-6">
+              Dê um nome ao seu treino
+            </h1>
+            <div className="flex flex-col items-center gap-8 mt-4">
+              <input
+                type="text"
+                placeholder="Digite o nome do treino"
+                value={workoutName}
+                onChange={(e) => setWorkoutName(e.target.value)}
+                className="w-full max-w-md h-14 rounded-lg px-4 text-lg text-center bg-zinc-800 border border-zinc-700 focus:outline-none focus:ring-2 focus:ring-red-500 transition-all duration-200"
+              />
+
+              <div className="text-center text-zinc-400 text-sm max-w-sm">
+                Um bom nome pode ser o grupo muscular trabalhado, o dia da semana, ou outro identificador que facilite reconhecer este treino.
+              </div>
             </div>
           </div>
-          <div className="flex justify-center mb-6">
-            <ActionButton onClick={handleFinishWorkoutExercisesStep}>Continuar</ActionButton>
+        )}
+
+        {/* Fixed Footer */}
+        <div className="fixed bottom-0 left-0 right-0 bg-zinc-900 p-4 border-t border-zinc-800 sm:px-6">
+          <div className="max-w-3xl mx-auto flex justify-center">
+            <ActionButton
+              onClick={handleNextStep}
+              className={cn(
+                "mt-4 w-full sm:w-64",
+                (currentStep === 1 && workoutBodyParts.length === 0) ||
+                  (currentStep === 2 && !workoutSetsReps) ||
+                  (currentStep === 3 && workoutExercises.length === 0) ||
+                  (currentStep === 4 && (!workoutName || workoutName.trim().length === 0))
+                  ? "opacity-70 cursor-not-allowed"
+                  : ""
+              )}
+            >
+              {currentStep === 4 ? (
+                isLoadingCreateWorkout ? <MoonLoader size={24} color="#fff" /> : "Criar Treino"
+              ) : "Continuar"}
+            </ActionButton>
           </div>
-        </>
-      ) : (
-        <>
-          <div className="flex flex-1 flex-col justify-center gap-10">
-            <div className="text-3xl text-center">Escolha o nome desse treino</div>
-            <div className="flex justify-center items-center flex-wrap gap-3">
-              <input placeholder={'Digite o nome de seu treino'}
-                     onChange={(e) => setWorkoutName(e.target.value)}
-                     className="w-[90%] h-14 rounded-lg text-center text-2xl bg-neutral-700 placeholder:text-lg" />
-            </div>
+        </div>
+      </div>
+
+      {/* Success Dialog */}
+      <Dialog
+        open={successDialogOpen}
+        onOpenChange={setSuccessDialogOpen}
+      >
+        <DialogContent
+          className="w-[95%] max-w-md rounded-lg bg-zinc-900 border-0 shadow-lg"
+          onInteractOutside={(e) => e.preventDefault()}
+          onEscapeKeyDown={(e) => e.preventDefault()}
+          onPointerDownOutside={(e) => e.preventDefault()}
+        >
+          <DialogHeader className="flex justify-center items-center">
+            <DialogTitle className="text-xl font-bold">Treino criado!</DialogTitle>
+            <DialogDescription className="text-center text-zinc-400">
+              Seu treino foi criado com sucesso.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="flex justify-center pb-4 pt-2">
+            <ActionButton
+              onClick={handleSuccessDialogClose}
+              width="w-48"
+              height="h-12"
+            >
+              Voltar para Treinos
+            </ActionButton>
           </div>
-          {!isLoadingCreateWorkout ? (
-            <div className="h-16 flex justify-center mb-6">
-              <ActionButton onClick={handleFinishWorkoutDetailsStep}>Criar treino</ActionButton>
-            </div>
-          ) : (
-            <div className="h-16 flex justify-center mb-6">
-              <MoonLoader color="#dc2626" />
-            </div>
-          )}
-        </>
-      )}
+        </DialogContent>
+      </Dialog>
     </main>
   );
 }
