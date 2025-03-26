@@ -104,10 +104,10 @@ export default function RegistrationPage() {
       {/* Mobile & Tablet Image Section */}
       <div className="block lg:hidden w-full h-64 relative">
         <Image
-          src="/images/register-banner.jpg"
+          src="/images/register-page-banner.jpg"
           alt="Fitness Registration"
           fill
-          className="absolute inset-0 object-cover filter grayscale"
+          className="absolute inset-0 object-cover blur-sm"
           priority
         />
       </div>
@@ -115,10 +115,10 @@ export default function RegistrationPage() {
       {/* Desktop Image Section */}
       <div className="hidden lg:block lg:w-1/2 relative">
         <Image
-          src="/images/register-banner.jpg"
+          src="/images/register-page-banner.jpg"
           alt="Fitness Registration"
           fill
-          className="absolute inset-0 object-cover filter grayscale"
+          className="absolute inset-0 object-cover blur-sm"
           priority
         />
       </div>
