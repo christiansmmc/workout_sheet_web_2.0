@@ -8,7 +8,8 @@ import {
     DialogHeader,
     DialogOverlay,
     DialogTitle,
-    DialogTrigger
+    DialogTrigger,
+    DialogDescription
 } from "@/components/ui/dialog";
 import { BeatLoader } from "react-spinners";
 
@@ -91,9 +92,13 @@ const WorkoutCard = ({ workout, onClick }: WorkoutCardProps) => {
                     <DialogContent
                         onOpenAutoFocus={(e) => e.preventDefault()}
                         className="w-[90%] max-w-md rounded-lg bg-zinc-900 border-0 p-0 shadow-xl"
+                        aria-describedby="edit-workout-description"
                     >
                         <DialogHeader className="px-6 pt-6 pb-4 border-b border-zinc-800">
                             <DialogTitle className="text-xl font-semibold">Editar Treino</DialogTitle>
+                            <DialogDescription id="edit-workout-description" className="sr-only">
+                                Edite o nome do treino selecionado
+                            </DialogDescription>
                         </DialogHeader>
 
                         <div className="p-6">

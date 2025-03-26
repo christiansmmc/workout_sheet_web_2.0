@@ -1,15 +1,17 @@
 "use client";
 
+import React from 'react';
 import { ArrowLeft, User } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { BeatLoader } from 'react-spinners';
 import ExerciseCard from '@/components/card/exerciseCard';
 import { useGetExercisesFromWorkoutQuery } from '@/api/workout/queries';
 
-export default function Page({ params }: { params: { id: number } }) {
+export default function Page({ params }: { params: Promise<{ id: number }> }) {
     const router = useRouter();
+    const unwrappedParams = React.use(params);
 
-    const { isSuccess, data, remove } = useGetExercisesFromWorkoutQuery(params.id);
+    const { isSuccess, data, remove } = useGetExercisesFromWorkoutQuery(unwrappedParams.id);
 
     const handleGoBack = () => {
         router.push("/workout");
@@ -44,7 +46,7 @@ export default function Page({ params }: { params: { id: number } }) {
                             <ExerciseCard
                                 key={workoutExercise.exercise.id}
                                 workoutExercise={workoutExercise}
-                                workoutId={params.id}
+                                workoutId={unwrappedParams.id}
                             />
                         ))
                 ) : (

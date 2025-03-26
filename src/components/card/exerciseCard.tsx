@@ -210,12 +210,13 @@ const ExerciseCard = ({ workoutExercise, workoutId }: ExerciseCardProps) => {
 
       <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <DialogOverlay className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm" />
-        <DialogContent className="w-[95%] rounded-lg sm:max-w-[425px] bg-zinc-900 border-0 shadow-lg">
+        <DialogContent className="w-[95%] rounded-lg sm:max-w-[425px] bg-zinc-900 border-0 shadow-lg"
+          aria-describedby="delete-exercise-description">
           <DialogHeader className="flex justify-center items-center">
             <DialogTitle className="text-xl font-bold">Excluir exercício</DialogTitle>
           </DialogHeader>
           <div className="flex flex-col p-4">
-            <p className="text-center">
+            <p className="text-center" id="delete-exercise-description">
               Tem certeza que deseja excluir este exercício?
             </p>
           </div>
