@@ -19,7 +19,7 @@ export default function Page({ params }: { params: Promise<{ id: number }> }) {
     };
 
     return (
-        <main className='h-full'>
+        <main className='app-container'>
             <header className={"flex items-center justify-between px-10 bg-zinc-800 h-16 shadow-lg"}>
                 <div
                     onClick={handleGoBack}
@@ -32,7 +32,7 @@ export default function Page({ params }: { params: Promise<{ id: number }> }) {
                 </div>
             </header>
             <div
-                className='flex flex-col gap-5 items-center mt-4 max-h-[calc(100%-6rem)] overflow-y-auto lg:gap-6'>
+                className='flex flex-col items-center mt-4 max-h-[calc(100%-6rem)] overflow-y-auto lg:gap-6'>
                 {isSuccess && data ? (
                     data?.workoutExercises
                         .sort((a, b) => {

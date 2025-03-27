@@ -1,5 +1,8 @@
 # Planilha de Treinos
 
+## TODO
+- Imagens menores de banner
+
 Bem-vindo ao Planilha de Treinos! Este projeto foi desenvolvido para ajudar usuários a organizar seus treinos, incluindo a carga utilizada em cada exercício.
 
 ## Índice

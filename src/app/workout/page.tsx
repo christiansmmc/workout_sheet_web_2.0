@@ -27,7 +27,7 @@ export default function Page() {
   };
 
   return (
-    <main className="min-h-screen flex flex-col bg-zinc-900">
+    <main className="app-container">
       {/* Header */}
       <header className="flex items-center justify-between px-6 sm:px-10 bg-zinc-800 h-16 shadow-lg">
         <div
@@ -43,8 +43,8 @@ export default function Page() {
       </header>
 
       {/* Workout List */}
-      <section className="flex-1 flex flex-col items-center py-8 px-4 sm:px-6 md:px-8 lg:px-10">
-        <div className="w-full max-w-2xl mx-auto">
+      <section className="flex-1 flex flex-col items-center py-8 px-4 sm:px-6 md:px-8 lg:px-10 overflow-y-auto">
+        <div className="w-full max-w-2xl mx-auto pb-20">
           {isSuccess && data ? (
             data.length > 0 ? (
               data

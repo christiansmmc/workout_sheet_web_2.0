@@ -141,7 +141,7 @@ export default function Page() {
   }, [successDialogOpen]);
 
   return (
-    <main className="min-h-screen flex flex-col bg-zinc-900">
+    <main className="app-container">
       {/* Header */}
       <header className="flex items-center justify-between px-4 sm:px-6 lg:px-10 bg-zinc-800 h-16 shadow-lg">
         <button

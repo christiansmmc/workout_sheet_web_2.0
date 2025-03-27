@@ -6,7 +6,7 @@ import { CheckCircle, Dumbbell, ClipboardList, TrendingUp } from 'lucide-react';
 
 export default function Home() {
   return (
-    <div className="min-h-screen flex flex-col lg:flex-row">
+    <div className="auth-container flex flex-col lg:flex-row">
       {/* Content Section */}
       <div className="w-full lg:w-1/2 flex items-center justify-center 
                       px-6 py-8 lg:px-16 xl:px-24 
@@ -70,7 +70,7 @@ export default function Home() {
                       min-h-[40vh] lg:min-h-screen
                       order-1 lg:order-2">
         <Image
-          src="/images/landing-page-banner.jpg"
+          src="/images/landing-page-banner.webp"
           alt="MeuTreino Fitness App"
           fill
           className="absolute inset-0 object-cover"

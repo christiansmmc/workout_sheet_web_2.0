@@ -10,7 +10,7 @@ import { useRegisterMutation } from '@/api/user/queries';
 
 // Validation Schema
 const registrationSchema = z.object({
-  name: z.string().optional(),
+  name: z.string(),
   height: z.string()
     .optional()
     .refine(val => {
@@ -85,7 +85,7 @@ export default function RegistrationPage() {
 
   const onSubmit = (data: RegistrationFormData) => {
     mutate({
-      firstName: data.name || '',
+      firstName: data.name,
       height: data.height
         ? Number(data.height.replace(',', '.'))
         : undefined,
@@ -100,11 +100,11 @@ export default function RegistrationPage() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col lg:flex-row">
+    <div className="auth-container flex flex-col lg:flex-row">
       {/* Mobile & Tablet Image Section */}
       <div className="block lg:hidden w-full h-64 relative">
         <Image
-          src="/images/register-page-banner.jpg"
+          src="/images/register-page-banner.webp"
           alt="Fitness Registration"
           fill
           className="absolute inset-0 object-cover blur-sm"
@@ -115,7 +115,7 @@ export default function RegistrationPage() {
       {/* Desktop Image Section */}
       <div className="hidden lg:block lg:w-1/2 relative">
         <Image
-          src="/images/register-page-banner.jpg"
+          src="/images/register-page-banner.webp"
           alt="Fitness Registration"
           fill
           className="absolute inset-0 object-cover blur-sm"
@@ -134,10 +134,9 @@ export default function RegistrationPage() {
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             <FormInput
               label="name"
-              placeholder="Nome completo"
+              placeholder="Nome"
               register={register}
               error={errors.name}
-              hint="Opcional"
             />
             <div className="flex space-x-4">
               <div className="w-1/2">

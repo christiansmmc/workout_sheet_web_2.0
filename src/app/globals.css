@@ -6,21 +6,48 @@
 
 @layer utilities {
 
-  input[type="number"]::-webkit-inner-spin-button,
-  input[type="number"]::-webkit-outer-spin-button {
-    @apply appearance-none;
-  }
+    input[type="number"]::-webkit-inner-spin-button,
+    input[type="number"]::-webkit-outer-spin-button {
+        @apply appearance-none;
+    }
 }
 
 @layer base {
 
-  *,
-  ::before,
-  ::after {
-    box-sizing: border-box;
-  }
+    *,
+    ::before,
+    ::after {
+        box-sizing: border-box;
+    }
 
-  body {
-    @apply bg-dark-900 text-dark-50 antialiased;
-  }
+    html,
+    body {
+        height: 100%;
+        overscroll-behavior: none;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    body {
+        @apply bg-dark-900 text-dark-50 antialiased;
+    }
+
+    #__next,
+    main {
+        @apply h-full;
+    }
+}
+
+@layer components {
+
+    /* Para as páginas de app */
+    .app-container {
+        @apply flex flex-col;
+        height: 100dvh;
+        overflow: hidden;
+    }
+
+    /* Para as páginas de login/home */
+    .auth-container {
+        @apply min-h-screen overflow-auto;
+    }
 }

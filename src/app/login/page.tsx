@@ -69,11 +69,11 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col lg:flex-row">
+    <div className="auth-container flex flex-col lg:flex-row">
       {/* Mobile & Tablet Image Section */}
       <div className="block lg:hidden w-full h-64 relative">
         <Image
-          src="/images/login-page-banner.jpg"
+          src="/images/login-page-banner.webp"
           alt="Fitness Login"
           fill
           className="absolute inset-0 object-cover blur-sm"
@@ -84,7 +84,7 @@ export default function LoginPage() {
       {/* Desktop Image Section */}
       <div className="hidden lg:block lg:w-1/2 relative">
         <Image
-          src="/images/login-page-banner.jpg"
+          src="/images/login-page-banner.webp"
           alt="Fitness Login"
           fill
           className="absolute inset-0 object-cover blur-sm"

@@ -12,6 +12,11 @@ const inter = Inter({ subsets: ["latin"] });
 export const metadata: Metadata = {
     title: "MeuTreino",
     description: "",
+    viewport: {
+        width: 'device-width',
+        initialScale: 1,
+        minimumScale: 1,
+    },
 };
 
 export default function RootLayout({
@@ -21,8 +26,8 @@ export default function RootLayout({
 }) {
     return (
         <ReactQueryProvider>
-            <html lang="en" className={`h-full ${inter.className}`}>
-                <body className={"h-full bg-zinc-900 text-zinc-100"}>
+            <html lang="en" className={inter.className}>
+                <body className="bg-zinc-900 text-zinc-100">
                     {children}
                     <ToastContainer
                         position="top-right"
