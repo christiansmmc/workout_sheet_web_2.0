@@ -355,8 +355,8 @@ export default function Page() {
           </div>
         )}
 
-        {/* Fixed Footer */}
-        <div className="fixed bottom-0 left-0 right-0 bg-zinc-900 p-2 sm:p-4 border-t border-zinc-800 sm:px-6">
+        {/* Footer */}
+        <div className="bg-zinc-900/95 backdrop-blur-sm p-2 sm:p-4 border-t border-zinc-800 sm:px-6 mt-auto">
           <div className="max-w-3xl mx-auto flex justify-center">
             <ActionButton
               onClick={handleNextStep}
