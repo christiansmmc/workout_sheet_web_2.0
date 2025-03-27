@@ -356,12 +356,12 @@ export default function Page() {
         )}
 
         {/* Fixed Footer */}
-        <div className="fixed bottom-0 left-0 right-0 bg-zinc-900 p-4 border-t border-zinc-800 sm:px-6">
+        <div className="fixed bottom-0 left-0 right-0 bg-zinc-900 p-2 sm:p-4 border-t border-zinc-800 sm:px-6">
           <div className="max-w-3xl mx-auto flex justify-center">
             <ActionButton
               onClick={handleNextStep}
               className={cn(
-                "mt-4 w-full sm:w-64",
+                "mt-0 sm:mt-4 w-full sm:w-64",
                 (currentStep === 1 && workoutBodyParts.length === 0) ||
                   (currentStep === 2 && !workoutSetsReps) ||
                   (currentStep === 3 && workoutExercises.length === 0) ||
