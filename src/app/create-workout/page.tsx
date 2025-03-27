@@ -179,7 +179,7 @@ export default function Page() {
       </div>
 
       {/* Content */}
-      <div className="flex-1 flex flex-col p-4 sm:p-6 max-w-3xl mx-auto w-full">
+      <div className="flex-1 flex flex-col min-h-0 p-4 sm:p-6 max-w-3xl mx-auto w-full">
         {/* Step 1: Selecionar Músculos */}
         {currentStep === 1 && (
           <div className="flex flex-col flex-1 gap-6 sm:gap-8">
@@ -279,7 +279,7 @@ export default function Page() {
 
         {/* Step 3: Selecionar Exercícios */}
         {currentStep === 3 && (
-          <div className="flex flex-col flex-1 gap-4 sm:gap-6 h-full">
+          <div className="flex flex-col flex-1 gap-4 sm:gap-6 min-h-0">
             <h1 className="text-2xl sm:text-3xl font-bold text-center mt-4 sm:mt-6">
               Escolha os exercícios
             </h1>
@@ -289,7 +289,7 @@ export default function Page() {
                 <MoonLoader color="#dc2626" />
               </div>
             ) : (
-              <div className="h-[calc(100vh-280px)] sm:h-[calc(100vh-300px)] overflow-y-auto mt-4 px-1">
+              <div className="flex-1 overflow-y-auto mt-4 px-1">
                 <div className="flex flex-col gap-3 pb-2">
                   {exercises?.map((exercise, index) => {
                     const isSelected = workoutExercises.includes(exercise.id);
