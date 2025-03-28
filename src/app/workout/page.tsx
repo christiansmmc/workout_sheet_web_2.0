@@ -6,16 +6,23 @@ import Cookie from 'js-cookie';
 import { useRouter } from 'next/navigation';
 import WorkoutCard from '@/components/card/workoutCard';
 import { useGetWorkoutsQuery } from '@/api/workout/queries';
+import { useQueryClient } from '@tanstack/react-query';
 
 export default function Page() {
   const router = useRouter();
+  const queryClient = useQueryClient();
 
-  const { isSuccess, data, remove } = useGetWorkoutsQuery();
+  const { isSuccess, data } = useGetWorkoutsQuery();
 
   const handleLogout = () => {
-    router.push('/');
+    // Remover o token
     Cookie.remove('access_token');
-    remove();
+    
+    // Limpar o cache do React Query
+    queryClient.clear();
+    
+    // Redirecionar para a página inicial
+    router.push('/');
   };
 
   const handleEnterWorkout = (id: number) => {
