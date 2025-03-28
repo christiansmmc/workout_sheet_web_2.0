@@ -30,7 +30,6 @@ interface ExerciseCardProps {
 }
 
 const ExerciseCard = ({ workoutExercise, workoutId }: ExerciseCardProps) => {
-  const [open, setOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [exerciseLoad, setExerciseLoad] = useState(workoutExercise.exerciseLoad);
@@ -58,6 +57,7 @@ const ExerciseCard = ({ workoutExercise, workoutId }: ExerciseCardProps) => {
       load: editExerciseLoad,
       sets: editExerciseSets,
       reps: editExerciseReps,
+      workoutId
     });
   };
 
@@ -69,19 +69,12 @@ const ExerciseCard = ({ workoutExercise, workoutId }: ExerciseCardProps) => {
       load: exerciseLoad,
       sets: workoutExercise.sets,
       reps: workoutExercise.reps,
+      workoutId
     });
   };
 
-  const handleClickOpen = () => {
-    setOpen(true);
-  };
-
-  const handleClose = () => {
-    setOpen(false);
-  };
-
   const handleDeleteWorkoutExercise = () => {
-    deleteWorkoutExerciseMutate({ workoutExerciseId: workoutExercise.id });
+    deleteWorkoutExerciseMutate({ workoutExerciseId: workoutExercise.id, workoutId: workoutId });
     setDeleteDialogOpen(false);
   };
 
