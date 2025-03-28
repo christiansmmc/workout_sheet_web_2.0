@@ -1,4 +1,8 @@
-import { CreateWorkoutRequest, GetWorkoutExercisesResponse, GetWorkoutsResponse, } from "@/api/interfaces/workout";
+import {
+    CreateWorkoutRequest,
+    GetWorkoutExercisesResponse,
+    GetWorkoutsResponse,
+} from "@/api/interfaces/workout";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
     createWorkoutRequest,
@@ -10,105 +14,101 @@ import {
     updateWorkoutRequest,
 } from "@/api/workout/api";
 
+// Tipos reutilizáveis
+type WorkoutId = number;
+type WorkoutExerciseId = number;
+
+type PatchWorkoutExercisePayload = {
+    workoutExerciseId: WorkoutExerciseId;
+    workoutId: WorkoutId;
+    load: number;
+    sets: number;
+    reps: number;
+};
+
+type DeleteWorkoutExercisePayload = {
+    workoutExerciseId: WorkoutExerciseId;
+    workoutId: WorkoutId; // Usado apenas para invalidar cache
+};
+
 export const useGetWorkoutsQuery = () => {
-    const { isLoading, isSuccess, isError, error, data } = useQuery({
+    return useQuery({
         queryKey: ["GetWorkouts"],
         queryFn: () => getWorkoutsRequest(),
     });
-
-    return {
-        isLoading,
-        isSuccess,
-        isError,
-        error,
-        data,
-    };
 };
 
-export const useGetExercisesFromWorkoutQuery = (workoutId: number) => {
-    const { isLoading, isSuccess, isError, isFetching, error, data } = useQuery({
+export const useGetExercisesFromWorkoutQuery = (workoutId: WorkoutId) => {
+    return useQuery({
         queryKey: ["workout", workoutId, "exercises"],
-        enabled: workoutId != null,
+        enabled: typeof workoutId === "number" && !isNaN(workoutId),
         queryFn: () => getExercisesFromWorkoutRequest(workoutId),
     });
-
-    return {
-        isLoading,
-        isSuccess,
-        isError,
-        isFetching,
-        error,
-        data,
-    };
 };
 
 export const useDeleteExerciseFromWorkoutMutation = () => {
     const queryClient = useQueryClient();
 
     const { mutate } = useMutation({
-        mutationFn: ({ workoutExerciseId, workoutId }: { workoutExerciseId: number, workoutId: number }) => 
+        mutationFn: ({ workoutExerciseId }: DeleteWorkoutExercisePayload) =>
             removeExerciseFromWorkoutRequest(workoutExerciseId),
         onSuccess: (_, { workoutId }) => {
             queryClient.invalidateQueries({ queryKey: ["workout", workoutId, "exercises"] });
         },
     });
 
-    return {
-        mutate,
-    };
+    return { mutate };
 };
 
 export const usePatchWorkoutExerciseMutation = () => {
     const queryClient = useQueryClient();
 
     const { mutate } = useMutation({
-        mutationFn: ({ workoutExerciseId, load, sets, reps, workoutId }: 
-            { workoutExerciseId: number; load: number, sets: number, reps: number, workoutId: number }) => 
+        mutationFn: ({ workoutExerciseId, load, sets, reps }: PatchWorkoutExercisePayload) =>
             updateExerciseLoadRequest(workoutExerciseId, load, sets, reps),
         onSuccess: (_, { workoutId }) => {
             queryClient.invalidateQueries({ queryKey: ["workout", workoutId, "exercises"] });
         },
     });
 
-    return {
-        mutate,
-    };
+    return { mutate };
 };
 
 export const usePatchWorkoutMutation = () => {
     const queryClient = useQueryClient();
 
     const { mutate } = useMutation({
-        mutationFn: ({ workoutId, name }: { workoutId: number; name: string }) => 
+        mutationFn: ({ workoutId, name }: { workoutId: WorkoutId; name: string }) =>
             updateWorkoutRequest(workoutId, name),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ["GetWorkouts"] });
         },
     });
 
-    return {
-        mutate,
-    };
+    return { mutate };
 };
 
 export const useDeleteWorkoutMutation = () => {
     const queryClient = useQueryClient();
 
     const { mutate } = useMutation({
-        mutationFn: (workoutId: number) => deleteWorkoutRequest(workoutId),
+        mutationFn: (workoutId: WorkoutId) => deleteWorkoutRequest(workoutId),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ["GetWorkouts"] });
         },
     });
 
-    return {
-        mutate,
-    };
+    return { mutate };
 };
 
 export const useCreateWorkoutMutation = () => {
+    const queryClient = useQueryClient();
+
     const { mutate, isPending } = useMutation({
         mutationFn: (data: CreateWorkoutRequest) => createWorkoutRequest(data),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ["GetWorkouts"] });
+        },
     });
 
     return {
