@@ -12,11 +12,12 @@ const inter = Inter({ subsets: ["latin"] });
 export const metadata: Metadata = {
     title: "MeuTreino",
     description: "",
-    viewport: {
-        width: 'device-width',
-        initialScale: 1,
-        minimumScale: 1,
-    },
+};
+
+export const viewport = {
+    width: 'device-width',
+    initialScale: 1,
+    minimumScale: 1,
 };
 
 export default function RootLayout({
