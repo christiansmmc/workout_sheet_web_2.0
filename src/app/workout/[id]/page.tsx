@@ -11,11 +11,10 @@ export default function Page({ params }: { params: Promise<{ id: number }> }) {
     const router = useRouter();
     const unwrappedParams = React.use(params);
 
-    const { isSuccess, data, remove } = useGetExercisesFromWorkoutQuery(unwrappedParams.id);
+    const { isSuccess, data } = useGetExercisesFromWorkoutQuery(unwrappedParams.id);
 
     const handleGoBack = () => {
         router.push("/workout");
-        remove();
     };
 
     return (

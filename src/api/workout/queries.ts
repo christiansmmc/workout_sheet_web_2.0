@@ -27,7 +27,7 @@ export const useGetWorkoutsQuery = () => {
 
 export const useGetExercisesFromWorkoutQuery = (workoutId: number) => {
     const { isLoading, isSuccess, isError, isFetching, error, data } = useQuery({
-        queryKey: ["GetWorkoutExercises", workoutId],
+        queryKey: ["workout", workoutId, "exercises"],
         enabled: workoutId != null,
         queryFn: () => getExercisesFromWorkoutRequest(workoutId),
     });
@@ -46,10 +46,10 @@ export const useDeleteExerciseFromWorkoutMutation = () => {
     const queryClient = useQueryClient();
 
     const { mutate } = useMutation({
-        mutationFn: ({ workoutExerciseId }: { workoutExerciseId: number }) => 
+        mutationFn: ({ workoutExerciseId, workoutId }: { workoutExerciseId: number, workoutId: number }) => 
             removeExerciseFromWorkoutRequest(workoutExerciseId),
-        onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ["GetWorkoutExercises"] });
+        onSuccess: (_, { workoutId }) => {
+            queryClient.invalidateQueries({ queryKey: ["workout", workoutId, "exercises"] });
         },
     });
 
@@ -62,11 +62,11 @@ export const usePatchWorkoutExerciseMutation = () => {
     const queryClient = useQueryClient();
 
     const { mutate } = useMutation({
-        mutationFn: ({ workoutExerciseId, load, sets, reps }: 
-            { workoutExerciseId: number; load: number, sets: number, reps: number }) => 
+        mutationFn: ({ workoutExerciseId, load, sets, reps, workoutId }: 
+            { workoutExerciseId: number; load: number, sets: number, reps: number, workoutId: number }) => 
             updateExerciseLoadRequest(workoutExerciseId, load, sets, reps),
-        onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ["GetWorkoutExercises"] });
+        onSuccess: (_, { workoutId }) => {
+            queryClient.invalidateQueries({ queryKey: ["workout", workoutId, "exercises"] });
         },
     });
 
