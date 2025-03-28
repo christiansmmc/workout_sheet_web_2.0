@@ -214,6 +214,9 @@ export default function Page() {
             <h1 className="text-2xl sm:text-3xl font-bold text-center mt-4 sm:mt-6">
               Quantas séries e repetições?
             </h1>
+            <p className="text-center text-zinc-400 text-sm max-w-sm mx-auto">
+              A quantidade de séries e repetições poderá ser editada individualmente para cada exercício na aba de treino.
+            </p>
             <div className="relative flex flex-col items-center gap-4 mt-4">
               <div className="flex justify-center items-center gap-3 w-full">
                 <div

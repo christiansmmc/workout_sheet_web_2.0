@@ -24,11 +24,11 @@ export default function Page({ params }: { params: Promise<{ id: number }> }) {
                 <div
                     onClick={handleGoBack}
                     className='cursor-pointer p-1 active:bg-neutral-600 active:rounded lg:active:bg-neutral-600 lg:hover:bg-neutral-700 lg:hover:rounded'>
-                    <ArrowLeft size={32} />
+                    <ArrowLeft size={24} />
                 </div>
                 <div
                     className='cursor-pointer p-1 active:bg-neutral-600 active:rounded lg:active:bg-neutral-600 lg:hover:bg-neutral-700 lg:hover:rounded'>
-                    <User size={32} />
+                    <User size={24} />
                 </div>
             </header>
             <div

@@ -1,8 +1,5 @@
 import { CreateWorkoutRequest, GetWorkoutExercisesResponse, GetWorkoutsResponse, } from "@/api/interfaces/workout";
-import { AxiosError, AxiosResponse } from "axios";
-import { RequestError } from "@/api/interfaces/request";
-import { useMutation, useQuery, useQueryClient } from "react-query";
-import { useRouter } from "next/navigation";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
     createWorkoutRequest,
     deleteWorkoutRequest,
@@ -14,19 +11,9 @@ import {
 } from "@/api/workout/api";
 
 export const useGetWorkoutsQuery = () => {
-    const router = useRouter();
-
-    const { isLoading, isSuccess, isError, error, data, remove } = useQuery<
-        GetWorkoutsResponse[],
-        AxiosError<RequestError>
-    >({
+    const { isLoading, isSuccess, isError, error, data } = useQuery({
         queryKey: ["GetWorkouts"],
         queryFn: () => getWorkoutsRequest(),
-        onError: (err) => {
-            if (err?.response?.status === 401) {
-                router.push("/login");
-            }
-        },
     });
 
     return {
@@ -35,25 +22,14 @@ export const useGetWorkoutsQuery = () => {
         isError,
         error,
         data,
-        remove,
     };
 };
 
 export const useGetExercisesFromWorkoutQuery = (workoutId: number) => {
-    const router = useRouter();
-
-    const { isLoading, isSuccess, isError, isFetching, error, remove, data } = useQuery<
-        GetWorkoutExercisesResponse,
-        AxiosError<RequestError>
-    >({
-        queryKey: ["GetWorkoutExercises"],
+    const { isLoading, isSuccess, isError, isFetching, error, data } = useQuery({
+        queryKey: ["GetWorkoutExercises", workoutId],
         enabled: workoutId != null,
         queryFn: () => getExercisesFromWorkoutRequest(workoutId),
-        onError: (err) => {
-            if (err?.response?.status === 401) {
-                router.push("/login");
-            }
-        },
     });
 
     return {
@@ -62,7 +38,6 @@ export const useGetExercisesFromWorkoutQuery = (workoutId: number) => {
         isError,
         isFetching,
         error,
-        remove,
         data,
     };
 };
@@ -70,15 +45,11 @@ export const useGetExercisesFromWorkoutQuery = (workoutId: number) => {
 export const useDeleteExerciseFromWorkoutMutation = () => {
     const queryClient = useQueryClient();
 
-    const { mutate } = useMutation<
-        AxiosResponse,
-        AxiosError<RequestError>,
-        { workoutExerciseId: number },
-        unknown
-    >({
-        mutationFn: ({ workoutExerciseId }) => removeExerciseFromWorkoutRequest(workoutExerciseId),
+    const { mutate } = useMutation({
+        mutationFn: ({ workoutExerciseId }: { workoutExerciseId: number }) => 
+            removeExerciseFromWorkoutRequest(workoutExerciseId),
         onSuccess: () => {
-            queryClient.invalidateQueries("GetWorkoutExercises");
+            queryClient.invalidateQueries({ queryKey: ["GetWorkoutExercises"] });
         },
     });
 
@@ -90,15 +61,12 @@ export const useDeleteExerciseFromWorkoutMutation = () => {
 export const usePatchWorkoutExerciseMutation = () => {
     const queryClient = useQueryClient();
 
-    const { mutate } = useMutation<
-        AxiosResponse,
-        AxiosError<RequestError>,
-        { workoutExerciseId: number; load: number, sets: number, reps: number },
-        unknown
-    >({
-        mutationFn: ({ workoutExerciseId, load, sets, reps }) => updateExerciseLoadRequest(workoutExerciseId, load, sets, reps),
+    const { mutate } = useMutation({
+        mutationFn: ({ workoutExerciseId, load, sets, reps }: 
+            { workoutExerciseId: number; load: number, sets: number, reps: number }) => 
+            updateExerciseLoadRequest(workoutExerciseId, load, sets, reps),
         onSuccess: () => {
-            queryClient.invalidateQueries("GetWorkoutExercises");
+            queryClient.invalidateQueries({ queryKey: ["GetWorkoutExercises"] });
         },
     });
 
@@ -110,15 +78,11 @@ export const usePatchWorkoutExerciseMutation = () => {
 export const usePatchWorkoutMutation = () => {
     const queryClient = useQueryClient();
 
-    const { mutate } = useMutation<
-        AxiosResponse,
-        AxiosError<RequestError>,
-        { workoutId: number; name: string },
-        unknown
-    >({
-        mutationFn: ({ workoutId, name }) => updateWorkoutRequest(workoutId, name),
+    const { mutate } = useMutation({
+        mutationFn: ({ workoutId, name }: { workoutId: number; name: string }) => 
+            updateWorkoutRequest(workoutId, name),
         onSuccess: () => {
-            queryClient.invalidateQueries("GetWorkouts");
+            queryClient.invalidateQueries({ queryKey: ["GetWorkouts"] });
         },
     });
 
@@ -130,10 +94,10 @@ export const usePatchWorkoutMutation = () => {
 export const useDeleteWorkoutMutation = () => {
     const queryClient = useQueryClient();
 
-    const { mutate } = useMutation<AxiosResponse, AxiosError<RequestError>, number, unknown>({
+    const { mutate } = useMutation({
         mutationFn: (workoutId: number) => deleteWorkoutRequest(workoutId),
         onSuccess: () => {
-            queryClient.invalidateQueries("GetWorkouts");
+            queryClient.invalidateQueries({ queryKey: ["GetWorkouts"] });
         },
     });
 
@@ -143,14 +107,12 @@ export const useDeleteWorkoutMutation = () => {
 };
 
 export const useCreateWorkoutMutation = () => {
-    const { mutate, isLoading } = useMutation<unknown, AxiosError<RequestError>, CreateWorkoutRequest, unknown>(
-        {
-            mutationFn: (data: CreateWorkoutRequest) => createWorkoutRequest(data),
-        }
-    );
+    const { mutate, isPending } = useMutation({
+        mutationFn: (data: CreateWorkoutRequest) => createWorkoutRequest(data),
+    });
 
     return {
         mutate,
-        isLoading,
+        isLoading: isPending,
     };
 };

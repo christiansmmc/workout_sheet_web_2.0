@@ -4,7 +4,7 @@ import { AxiosResponse } from "axios";
 import toastService from "@/utils/toast";
 
 export const getWorkoutsRequest = async (): Promise<GetWorkoutsResponse[]> => {
-    const { data } = await api.get<GetWorkoutsResponse[]>(`/workouts`);
+    const { data } = await api.get<GetWorkoutsResponse[]>("/workouts");
     return data;
 };
 
@@ -20,8 +20,8 @@ export const removeExerciseFromWorkoutRequest = async (
 
     return await toastService.promise(promise, {
         pending: "Removendo exercício...",
-        success: "Exercício removido",
-        error: "Erro removendo exercício",
+        success: "Exercício removido com sucesso",
+        error: "Ocorreu um erro inesperado",
     });
 };
 
@@ -34,8 +34,8 @@ export const updateExerciseLoadRequest = async (workoutExerciseId: number, load:
 
     return await toastService.promise(promise, {
         pending: "Atualizando carga...",
-        success: "Carga atualizada",
-        error: "Erro atualizando carga",
+        success: "Carga atualizada com sucesso",
+        error: "Ocorreu um erro inesperado",
     });
 };
 
@@ -44,8 +44,8 @@ export const updateWorkoutRequest = async (workoutId: number, name: string): Pro
 
     return await toastService.promise(promise, {
         pending: "Atualizando treino...",
-        success: "Treino atualizado",
-        error: "Erro atualizando treino",
+        success: "Treino atualizado com sucesso",
+        error: "Ocorreu um erro inesperado",
     });
 };
 
@@ -54,19 +54,17 @@ export const deleteWorkoutRequest = async (workoutId: number): Promise<AxiosResp
 
     return await toastService.promise(promise, {
         pending: "Deletando treino...",
-        success: "Treino deletado",
-        error: "Erro deletando treino",
+        success: "Treino deletado com sucesso",
+        error: "Ocorreu um erro inesperado",
     });
 };
 
 export const createWorkoutRequest = async (payload: CreateWorkoutRequest) => {
-    const data = api.post(`/workouts`, payload);
+    const promise = api.post(`/workouts`, payload);
 
-    await toastService.promise(data, {
+    return await toastService.promise(promise, {
         pending: "Criando treino...",
-        success: "Treino criado",
-        error: "Erro criando treino",
+        success: "Treino criado com sucesso",
+        error: "Ocorreu um erro inesperado",
     });
-
-    return { data };
 };

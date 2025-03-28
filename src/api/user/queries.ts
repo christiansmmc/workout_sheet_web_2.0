@@ -1,9 +1,7 @@
 "use client";
 
 import {LoginRequestPayload, LoginResponsePayload, RegisterRequestPayload} from "@/api/interfaces/user";
-import {AxiosError} from "axios";
-import {RequestError} from "@/api/interfaces/request";
-import {useMutation} from "react-query";
+import {useMutation} from "@tanstack/react-query";
 import {useRouter} from "next/navigation";
 import {setToken} from "@/utils/authUtils";
 import {loginRequest, registerRequest} from "@/api/user/api";
@@ -11,12 +9,7 @@ import {loginRequest, registerRequest} from "@/api/user/api";
 export const useLoginMutation = () => {
     const router = useRouter();
 
-    const {mutate, isLoading, isError, error} = useMutation<
-        LoginResponsePayload,
-        AxiosError<RequestError>,
-        LoginRequestPayload,
-        unknown
-    >({
+    const {mutate, isPending, isError, error} = useMutation({
         mutationFn: (data: LoginRequestPayload) => loginRequest(data),
         onSuccess: (data: LoginResponsePayload) => {
             if (data) {
@@ -28,7 +21,7 @@ export const useLoginMutation = () => {
 
     return {
         mutate,
-        isLoading,
+        isLoading: isPending,
         isError,
         error,
     };
@@ -37,12 +30,7 @@ export const useLoginMutation = () => {
 export const useRegisterMutation = () => {
     const router = useRouter();
 
-    const {mutate, isLoading, isError, error} = useMutation<
-        unknown,
-        AxiosError<RequestError>,
-        RegisterRequestPayload,
-        unknown
-    >({
+    const {mutate, isPending, isError, error} = useMutation({
         mutationFn: (data: RegisterRequestPayload) => registerRequest(data),
         onSuccess: () => {
             router.push("/login");
@@ -51,7 +39,7 @@ export const useRegisterMutation = () => {
 
     return {
         mutate,
-        isLoading,
+        isLoading: isPending,
         isError,
         error,
     };
