@@ -17,15 +17,15 @@ export default function Page() {
   const handleLogout = () => {
     // Remover o token
     Cookie.remove('access_token');
-    
+
     // Limpar o cache do React Query
     queryClient.clear();
-    
+
     // Redirecionar para a página inicial
     router.push('/');
   };
 
-  const handleEnterWorkout = (id: number) => {
+  const handleEnterWorkout = (id: string) => {
     router.push(`/workout/${id}`);
   };
 

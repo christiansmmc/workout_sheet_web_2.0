@@ -11,7 +11,7 @@ export default function Page({ params }: { params: Promise<{ id: string }> }) {
     const router = useRouter();
     const unwrappedParams = React.use(params);
 
-    const { isSuccess, data } = useGetExercisesFromWorkoutQuery(Number(unwrappedParams.id));
+    const { isSuccess, data } = useGetExercisesFromWorkoutQuery(unwrappedParams.id);
 
     const handleGoBack = () => {
         router.push("/workout");

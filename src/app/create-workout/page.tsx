@@ -31,7 +31,7 @@ export default function Page() {
   const [workoutSetsReps, setWorkoutSetsReps] = useState<string>();
   const [workoutReps, setWorkoutReps] = useState<number>(0);
   const [workoutSets, setWorkoutSets] = useState<number>(0);
-  const [workoutExercises, setWorkoutExercises] = useState<number[]>([]);
+  const [workoutExercises, setWorkoutExercises] = useState<string[]>([]);
   const [workoutName, setWorkoutName] = useState<string>('');
 
   const { isLoading, data: exercises } = useGetExercisesQuery(fetchExercises, workoutBodyParts);
@@ -110,7 +110,7 @@ export default function Page() {
     }
   }, []);
 
-  const handleSelectExercise = useCallback((exerciseId: number) => {
+  const handleSelectExercise = useCallback((exerciseId: string) => {
     setWorkoutExercises(prevState =>
       prevState.includes(exerciseId)
         ? prevState.filter(id => id !== exerciseId)

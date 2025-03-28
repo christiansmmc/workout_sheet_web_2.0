@@ -16,17 +16,17 @@ import ActionButton from '@/components/button/actionButton';
 
 interface ExerciseCardProps {
   workoutExercise: {
-    id: number;
+    id: string;
     sets: number;
     reps: number;
     exerciseLoad: number;
     exercise: {
-      id: number;
+      id: string;
       name: string;
       bodyPart: string;
     };
   };
-  workoutId: number;
+  workoutId: string;
 }
 
 const bodyPartColors: Record<string, string> = {

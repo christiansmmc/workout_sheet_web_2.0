@@ -8,13 +8,13 @@ export const getWorkoutsRequest = async (): Promise<GetWorkoutsResponse[]> => {
     return data;
 };
 
-export const getExercisesFromWorkoutRequest = async (workoutId: number): Promise<GetWorkoutExercisesResponse> => {
+export const getExercisesFromWorkoutRequest = async (workoutId: string): Promise<GetWorkoutExercisesResponse> => {
     const { data } = await api.get<GetWorkoutExercisesResponse>(`/workouts/${workoutId}`);
     return data;
 };
 
 export const removeExerciseFromWorkoutRequest = async (
-    workoutExerciseId: number,
+    workoutExerciseId: string,
 ): Promise<AxiosResponse> => {
     const promise = api.delete<void>(`/workout-exercises/${workoutExerciseId}`);
 
@@ -25,7 +25,7 @@ export const removeExerciseFromWorkoutRequest = async (
     });
 };
 
-export const updateExerciseLoadRequest = async (workoutExerciseId: number, load: number, sets: number, reps: number) => {
+export const updateExerciseLoadRequest = async (workoutExerciseId: string, load: number, sets: number, reps: number) => {
     const promise = api.patch(`/workout-exercises/${workoutExerciseId}`, {
         load,
         sets,
@@ -39,7 +39,7 @@ export const updateExerciseLoadRequest = async (workoutExerciseId: number, load:
     });
 };
 
-export const updateWorkoutRequest = async (workoutId: number, name: string): Promise<AxiosResponse> => {
+export const updateWorkoutRequest = async (workoutId: string, name: string): Promise<AxiosResponse> => {
     const promise = api.patch<void>(`/workouts/${workoutId}`, { name });
 
     return await toastService.promise(promise, {
@@ -49,7 +49,7 @@ export const updateWorkoutRequest = async (workoutId: number, name: string): Pro
     });
 };
 
-export const deleteWorkoutRequest = async (workoutId: number): Promise<AxiosResponse> => {
+export const deleteWorkoutRequest = async (workoutId: string): Promise<AxiosResponse> => {
     const promise = api.delete<void>(`/workouts/${workoutId}`);
 
     return await toastService.promise(promise, {

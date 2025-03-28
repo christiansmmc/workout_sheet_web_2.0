@@ -15,10 +15,10 @@ import { BeatLoader } from "react-spinners";
 
 interface WorkoutCardProps {
     workout: {
-        id: number;
+        id: string;
         name: string;
     };
-    onClick: (id: number) => void;
+    onClick: (id: string) => void;
 }
 
 const WorkoutCard = ({ workout, onClick }: WorkoutCardProps) => {

@@ -1,8 +1,4 @@
-import {
-    CreateWorkoutRequest,
-    GetWorkoutExercisesResponse,
-    GetWorkoutsResponse,
-} from "@/api/interfaces/workout";
+import { CreateWorkoutRequest } from "@/api/interfaces/workout";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
     createWorkoutRequest,
@@ -15,8 +11,8 @@ import {
 } from "@/api/workout/api";
 
 // Tipos reutilizáveis
-type WorkoutId = number;
-type WorkoutExerciseId = number;
+type WorkoutId = string;
+type WorkoutExerciseId = string;
 
 type PatchWorkoutExercisePayload = {
     workoutExerciseId: WorkoutExerciseId;
@@ -41,7 +37,7 @@ export const useGetWorkoutsQuery = () => {
 export const useGetExercisesFromWorkoutQuery = (workoutId: WorkoutId) => {
     return useQuery({
         queryKey: ["workout", workoutId, "exercises"],
-        enabled: typeof workoutId === "number" && !isNaN(workoutId),
+        enabled: typeof workoutId === "string" && workoutId.length > 0,
         queryFn: () => getExercisesFromWorkoutRequest(workoutId),
     });
 };
