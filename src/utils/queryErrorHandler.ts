@@ -1,9 +1,10 @@
 import { AxiosError } from "axios";
 import { RequestError } from "@/api/interfaces/request";
 import toastService from "@/utils/toast";
+import { removeToken } from "@/utils/authUtils";
 
 // Define tipos de contexto para personalizar mensagens de erro
-export type ErrorContext = 
+export type ErrorContext =
   | 'default'
   | 'login'
   | 'register';
@@ -44,28 +45,38 @@ const errorMessages = {
   }
 };
 
+// Função utilitária para navegação client-side 
+// Criada para não importar useRouter (que é um hook) diretamente aqui
+const redirectToLogin = () => {
+  // Em client components, podemos substituir por useRouter().push('/login')
+  // Mas aqui usamos location pois funciona em contextos sem o hook do Next.js
+  window.location.href = "/login";
+};
+
 export const handleQueryError = (error: unknown, context: ErrorContext = 'default', redirectOnAuth = true) => {
-    const axiosError = error as AxiosError<RequestError>;
-    const messages = errorMessages[context];
-    
-    if (axiosError?.response) {
-        const statusCode = axiosError.response.status;
-        const errorMessage = axiosError.response.data?.message;
-        
-        // Caso especial para 401 com redirecionamento
-        if (statusCode === 401 && redirectOnAuth) {
-            window.location.href = "/login";
-            return;
-        }
-        
-        // Buscar mensagem específica para este código de status e contexto
-        const message = messages[statusCode as keyof typeof messages] || messages.default;
-        toastService.error(errorMessage || message);
-    } else if (axiosError?.request) {
-        // Erro de rede - sem resposta do servidor
-        toastService.error(messages.network);
-    } else {
-        // Erro desconhecido
-        toastService.error(messages.default);
+  const axiosError = error as AxiosError<RequestError>;
+  const messages = errorMessages[context];
+
+  if (axiosError?.response) {
+    const statusCode = axiosError.response.status;
+    const errorMessage = axiosError.response.data?.message;
+
+    // Caso especial para 401 com redirecionamento
+    if ((statusCode === 401 || statusCode === 403) && redirectOnAuth) {
+      // Limpar o token antes de redirecionar para evitar loop de redirecionamento
+      removeToken();
+      redirectToLogin();
+      return;
     }
+
+    // Buscar mensagem específica para este código de status e contexto
+    const message = messages[statusCode as keyof typeof messages] || messages.default;
+    toastService.error(errorMessage || message);
+  } else if (axiosError?.request) {
+    // Erro de rede - sem resposta do servidor
+    toastService.error(messages.network);
+  } else {
+    // Erro desconhecido
+    toastService.error(messages.default);
+  }
 };
