@@ -9,12 +9,12 @@ interface ActionButtonProps {
 }
 
 const ActionButton = ({
-                        children,
-                        onClick,
-                        width = 'w-96',
-                        height = 'h-16',
-                        className = '',
-                      }: ActionButtonProps) => {
+  children,
+  onClick,
+  width = 'w-96',
+  height = 'h-16',
+  className = '',
+}: ActionButtonProps) => {
   return (
     <button
       type="submit"

@@ -1,4 +1,4 @@
-import { ChevronRight, Dumbbell, Pencil, Trash2 } from "lucide-react";
+import { ChevronRight, Dumbbell, Pencil, Trash2, GripVertical } from "lucide-react";
 import { useState } from "react";
 import { useDeleteWorkoutMutation, usePatchWorkoutMutation } from "@/api/workout/queries";
 import {
@@ -17,11 +17,14 @@ interface WorkoutCardProps {
     workout: {
         id: string;
         name: string;
+        listOrder?: number;
     };
     onClick: (id: string) => void;
+    dragHandleProps?: any;
+    isDragging?: boolean;
 }
 
-const WorkoutCard = ({ workout, onClick }: WorkoutCardProps) => {
+const WorkoutCard = ({ workout, onClick, dragHandleProps, isDragging }: WorkoutCardProps) => {
     const [open, setOpen] = useState(false);
     const [inputValue, setInputValue] = useState(workout.name);
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -67,7 +70,17 @@ const WorkoutCard = ({ workout, onClick }: WorkoutCardProps) => {
     };
 
     return (
-        <div className="flex justify-between items-center w-full rounded-lg overflow-hidden bg-zinc-800 shadow-md transition-all duration-200 hover:shadow-lg h-20 sm:h-24 border border-zinc-700">
+        <div
+            className={`flex justify-between items-center w-full rounded-lg overflow-hidden bg-zinc-800 shadow-md transition-all duration-200 hover:shadow-lg h-20 sm:h-24 border border-zinc-700 ${isDragging ? 'opacity-50 shadow-xl ring-2 ring-red-500' : ''}`}
+        >
+            <div className="flex items-center h-full">
+                <div
+                    className="flex items-center justify-center h-full px-3 sm:px-4 text-zinc-400 cursor-grab active:cursor-grabbing hover:text-white hover:bg-zinc-700 transition-colors duration-200"
+                    {...dragHandleProps}
+                >
+                    <GripVertical size={22} />
+                </div>
+            </div>
             <div
                 className="flex items-center gap-3 sm:gap-5 p-4 sm:p-5 flex-1 cursor-pointer h-full"
                 onClick={() => onClick(workout.id)}

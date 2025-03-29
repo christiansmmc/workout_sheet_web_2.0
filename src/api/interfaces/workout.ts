@@ -1,6 +1,7 @@
 export interface GetWorkoutsResponse {
     id: string;
     name: string;
+    listOrder: number;
 }
 
 export interface GetWorkoutExercisesResponse {
