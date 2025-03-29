@@ -25,6 +25,9 @@ export default function Page({ params }: { params: Promise<{ id: string }> }) {
                     className='cursor-pointer p-1 active:bg-neutral-600 active:rounded lg:active:bg-neutral-600 lg:hover:bg-neutral-700 lg:hover:rounded'>
                     <ArrowLeft size={24} />
                 </div>
+                {isSuccess && data && (
+                    <h1 className="text-xl font-semibold text-white">{data.name}</h1>
+                )}
                 <div
                     className='cursor-pointer p-1 active:bg-neutral-600 active:rounded lg:active:bg-neutral-600 lg:hover:bg-neutral-700 lg:hover:rounded'>
                     <User size={24} />
