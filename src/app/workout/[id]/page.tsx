@@ -1,11 +1,12 @@
 "use client";
 
 import React from 'react';
-import { ArrowLeft, User } from 'lucide-react';
+import { ArrowLeft, User, Play } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { BeatLoader } from 'react-spinners';
 import ExerciseCard from '@/components/card/exerciseCard';
 import { useGetExercisesFromWorkoutQuery } from '@/api/workout/queries';
+import ActionButton from '@/components/button/actionButton';
 
 export default function Page({ params }: { params: Promise<{ id: string }> }) {
     const router = useRouter();
@@ -15,6 +16,10 @@ export default function Page({ params }: { params: Promise<{ id: string }> }) {
 
     const handleGoBack = () => {
         router.push("/workout");
+    };
+
+    const handleStartWorkout = () => {
+        router.push(`/workout/${unwrappedParams.id}/start-workout`);
     };
 
     return (
@@ -33,8 +38,9 @@ export default function Page({ params }: { params: Promise<{ id: string }> }) {
                     <User size={24} />
                 </div>
             </header>
+
             <div
-                className='flex flex-col items-center mt-4 max-h-[calc(100%-6rem)] overflow-y-auto lg:gap-6'>
+                className='flex flex-col items-center mt-4 max-h-[calc(100%-10rem)] overflow-y-auto lg:gap-6'>
                 {isSuccess && data ? (
                     data?.workoutExercises
                         .sort((a, b) => {
@@ -57,6 +63,21 @@ export default function Page({ params }: { params: Promise<{ id: string }> }) {
                     </div>
                 )}
             </div>
+
+            {/* Start Workout Button - Moved to bottom */}
+            {isSuccess && data && data.workoutExercises.length > 0 && (
+                <div className="fixed bottom-6 left-0 right-0 flex justify-center">
+                    <ActionButton
+                        onClick={handleStartWorkout}
+                        width="w-52"
+                        height="h-10"
+                        className="flex items-center justify-center gap-2"
+                    >
+                        <Play size={16} />
+                        Iniciar Treino
+                    </ActionButton>
+                </div>
+            )}
         </main>
     );
 }
