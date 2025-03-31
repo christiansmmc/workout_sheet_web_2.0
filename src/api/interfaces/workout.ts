@@ -29,3 +29,8 @@ export interface CreateWorkoutRequest {
         load?: number;
     }[];
 }
+
+export interface UpdateWorkoutsListOrderRequest {
+    id: string;
+    listOrder: number;
+}

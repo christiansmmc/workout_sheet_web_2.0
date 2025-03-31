@@ -1,4 +1,4 @@
-import { CreateWorkoutRequest } from "@/api/interfaces/workout";
+import { CreateWorkoutRequest, UpdateWorkoutsListOrderRequest } from "@/api/interfaces/workout";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
     createWorkoutRequest,
@@ -8,6 +8,7 @@ import {
     removeExerciseFromWorkoutRequest,
     updateExerciseLoadRequest,
     updateWorkoutRequest,
+    updateWorkoutsListOrderRequest,
 } from "@/api/workout/api";
 
 // Tipos reutilizáveis
@@ -111,4 +112,17 @@ export const useCreateWorkoutMutation = () => {
         mutate,
         isLoading: isPending,
     };
+};
+
+export const usePatchWorkoutsListOrderMutation = () => {
+    const queryClient = useQueryClient();
+
+    const { mutate, isPending } = useMutation({
+        mutationFn: (data: UpdateWorkoutsListOrderRequest[]) => updateWorkoutsListOrderRequest(data),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ["GetWorkouts"] });
+        },
+    });
+
+    return { mutate, isPending };
 };

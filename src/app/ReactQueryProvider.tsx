@@ -1,6 +1,6 @@
 "use client";
 
-import {QueryClient, QueryClientProvider} from "@tanstack/react-query";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import React from "react";
 import { handleQueryError } from "@/utils/queryErrorHandler";
 import { AxiosError } from "axios";
@@ -15,7 +15,7 @@ const queryClient = new QueryClient({
                     // Erros de rede - tentar novamente até 3 vezes
                     return failureCount < 3;
                 }
-                
+
                 // Para erros com resposta, não fazemos retry mas tratamos o erro
                 handleQueryError(error, 'default', true);
                 return false;

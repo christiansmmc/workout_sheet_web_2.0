@@ -5,7 +5,7 @@ import { BeatLoader } from 'react-spinners';
 import Cookie from 'js-cookie';
 import { useRouter } from 'next/navigation';
 import WorkoutCard from '@/components/card/workoutCard';
-import { useGetWorkoutsQuery } from '@/api/workout/queries';
+import { useGetWorkoutsQuery, usePatchWorkoutsListOrderMutation } from '@/api/workout/queries';
 import { useQueryClient } from '@tanstack/react-query';
 import { useState, useMemo } from 'react';
 import {
@@ -65,6 +65,7 @@ export default function Page() {
   const [workouts, setWorkouts] = useState<Workout[]>([]);
 
   const { isSuccess, data } = useGetWorkoutsQuery();
+  const { mutate: patchWorkoutsListOrderMutate, isPending: patchWorkoutsListOrderIsPending } = usePatchWorkoutsListOrderMutation();
 
   // Update local workouts state when data changes
   useMemo(() => {
@@ -83,10 +84,12 @@ export default function Page() {
   );
 
   const handleDragStart = (event: DragStartEvent) => {
+    if (patchWorkoutsListOrderIsPending) return;
     setActiveId(event.active.id as string);
   };
 
   const handleDragEnd = (event: DragEndEvent) => {
+    if (patchWorkoutsListOrderIsPending) return;
     const { active, over } = event;
 
     if (over && active.id !== over.id) {
@@ -112,6 +115,7 @@ export default function Page() {
       }));
 
       console.log('Reordering payload:', updatePayload);
+      patchWorkoutsListOrderMutate(updatePayload);
     }
 
     setActiveId(null);
@@ -157,12 +161,7 @@ export default function Page() {
         <div className="w-full max-w-2xl mx-auto pb-20">
           {isSuccess && data ? (
             workouts.length > 0 ? (
-              <DndContext
-                sensors={sensors}
-                collisionDetection={closestCenter}
-                onDragStart={handleDragStart}
-                onDragEnd={handleDragEnd}
-              >
+              patchWorkoutsListOrderIsPending ? (
                 <SortableContext
                   items={workouts.map(workout => workout.id)}
                   strategy={verticalListSortingStrategy}
@@ -175,7 +174,27 @@ export default function Page() {
                     />
                   ))}
                 </SortableContext>
-              </DndContext>
+              ) : (
+                <DndContext
+                  sensors={sensors}
+                  collisionDetection={closestCenter}
+                  onDragStart={handleDragStart}
+                  onDragEnd={handleDragEnd}
+                >
+                  <SortableContext
+                    items={workouts.map(workout => workout.id)}
+                    strategy={verticalListSortingStrategy}
+                  >
+                    {workouts.map((workout) => (
+                      <SortableWorkoutItem
+                        key={workout.id}
+                        workout={workout}
+                        onClick={handleEnterWorkout}
+                      />
+                    ))}
+                  </SortableContext>
+                </DndContext>
+              )
             ) : (
               <div className="flex flex-col items-center justify-center h-80 text-center p-6 bg-zinc-800 rounded-xl shadow-lg">
                 <p className="text-xl text-zinc-400 mb-4">Nenhum treino encontrado</p>

@@ -1,4 +1,4 @@
-import { CreateWorkoutRequest, GetWorkoutExercisesResponse, GetWorkoutsResponse } from "@/api/interfaces/workout";
+import { CreateWorkoutRequest, GetWorkoutExercisesResponse, GetWorkoutsResponse, UpdateWorkoutsListOrderRequest } from "@/api/interfaces/workout";
 import api from "@/api/axiosConfig";
 import { AxiosResponse } from "axios";
 import toastService from "@/utils/toast";
@@ -68,3 +68,8 @@ export const createWorkoutRequest = async (payload: CreateWorkoutRequest) => {
         error: "Ocorreu um erro inesperado",
     });
 };
+
+export const updateWorkoutsListOrderRequest = async (payload: UpdateWorkoutsListOrderRequest[]) => {
+    const promise = api.patch(`/workouts/list-order`, payload);
+    return await promise;
+}; 
