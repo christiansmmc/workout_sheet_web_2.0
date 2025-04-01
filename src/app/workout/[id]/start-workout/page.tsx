@@ -215,7 +215,7 @@ export default function StartWorkoutPage({ params }: { params: Promise<{ id: str
                 )}
             </header>
 
-            <div className='flex flex-col items-center pt-2 max-h-[calc(100vh-8rem)] overflow-y-auto lg:gap-4'>
+            <div className='flex flex-col items-center pt-2 pb-20 max-h-[calc(100vh-8rem)] overflow-y-auto lg:gap-4'>
                 {isSuccess && data ? (
                     <>
                         {data?.workoutExercises
