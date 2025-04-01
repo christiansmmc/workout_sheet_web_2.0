@@ -52,6 +52,7 @@ export default function StartWorkoutPage({ params }: { params: Promise<{ id: str
     // State to track exercise completion status and reps per set
     const [exerciseTracking, setExerciseTracking] = useState<ExerciseTrackingState>({});
     const [alertModalOpen, setAlertModalOpen] = useState(false);
+    const [cancelModalOpen, setCancelModalOpen] = useState(false);
     const [pendingExercises, setPendingExercises] = useState<string[]>([]);
 
     // Initialize tracking state when data is loaded
@@ -68,6 +69,21 @@ export default function StartWorkoutPage({ params }: { params: Promise<{ id: str
             setExerciseTracking(initialState);
         }
     }, [isSuccess, data]);
+
+    // Calculate progress percentage
+    const progressPercentage = React.useMemo(() => {
+        if (!isSuccess || !data?.workoutExercises || Object.keys(exerciseTracking).length === 0) {
+            return 0;
+        }
+
+        const totalExercises = data.workoutExercises.length;
+        const decidedExercises = data.workoutExercises.filter(workoutExercise => {
+            const status = exerciseTracking[workoutExercise.id]?.status;
+            return status === 'completed' || status === 'skipped';
+        }).length;
+
+        return Math.round((decidedExercises / totalExercises) * 100);
+    }, [isSuccess, data, exerciseTracking]);
 
     // Check if all exercises are completed or skipped
     const areAllExercisesDecided = React.useMemo(() => {
@@ -92,7 +108,11 @@ export default function StartWorkoutPage({ params }: { params: Promise<{ id: str
         return allDecided;
     }, [isSuccess, data, exerciseTracking]);
 
-    const handleGoBack = () => {
+    const handleCancel = () => {
+        setCancelModalOpen(true);
+    };
+
+    const confirmCancel = () => {
         router.push(`/workout/${workoutId}`);
     };
 
@@ -183,27 +203,37 @@ export default function StartWorkoutPage({ params }: { params: Promise<{ id: str
         }
     };
 
-
-
     return (
         <main className='app-container'>
-            <header className={"flex items-center justify-between px-10 bg-zinc-800 h-16 shadow-lg"}>
+            <header className={"flex items-center justify-between px-4 md:px-10 bg-zinc-800 h-16 shadow-lg"}>
                 <div
-                    onClick={handleGoBack}
-                    className='cursor-pointer p-1 active:bg-neutral-600 active:rounded lg:active:bg-neutral-600 lg:hover:bg-neutral-700 lg:hover:rounded'>
-                    <ArrowLeft size={24} />
+                    onClick={handleCancel}
+                    className='cursor-pointer p-2 rounded-md hover:bg-zinc-700 active:bg-zinc-600 transition-colors'>
+                    <span className="font-medium text-sm md:text-base">Cancelar</span>
                 </div>
                 {isSuccess && data && (
-                    <h1 className="text-xl font-semibold text-white">{data.name}</h1>
+                    <h1 className="text-xl font-semibold text-white truncate max-w-[50%]">{data.name}</h1>
                 )}
-                <div
-                    className='cursor-pointer p-1 active:bg-neutral-600 active:rounded lg:active:bg-neutral-600 lg:hover:bg-neutral-700 lg:hover:rounded'>
-                    <User size={24} />
+                <div>
+                    <button
+                        onClick={finishWorkout}
+                        className={`rounded-md bg-red-600 hover:bg-red-700 py-2 px-3 text-sm md:text-base font-medium transition-colors ${!areAllExercisesDecided ? 'opacity-70' : ''}`}
+                    >
+                        Concluir
+                    </button>
                 </div>
             </header>
 
+            {/* Progress bar */}
+            <div className="w-full bg-zinc-700 h-1.5">
+                <div
+                    className="bg-red-600 h-full transition-all duration-300 ease-out"
+                    style={{ width: `${progressPercentage}%` }}
+                />
+            </div>
+
             <div
-                className='flex flex-col items-center mt-4 max-h-[calc(100%-10rem)] overflow-y-auto lg:gap-4'>
+                className='flex flex-col items-center pt-4 max-h-[calc(100%-5rem)] overflow-y-auto lg:gap-4 pb-4'>
                 {isSuccess && data ? (
                     <>
                         {data?.workoutExercises
@@ -446,21 +476,7 @@ export default function StartWorkoutPage({ params }: { params: Promise<{ id: str
                 )}
             </div>
 
-            {/* Finish Workout Button - Styled to match Iniciar Treino button */}
-            {isSuccess && data && data.workoutExercises.length > 0 && (
-                <div className="fixed bottom-6 left-0 right-0 flex justify-center">
-                    <ActionButton
-                        onClick={finishWorkout}
-                        width="w-52"
-                        height="h-10"
-                        className={`flex items-center justify-center gap-2 ${!areAllExercisesDecided ? 'opacity-70' : ''}`}
-                    >
-                        Finalizar Treino
-                    </ActionButton>
-                </div>
-            )}
-
-            {/* Alert Modal */}
+            {/* Alert Modal for incomplete exercises */}
             <Dialog open={alertModalOpen} onOpenChange={setAlertModalOpen}>
                 <DialogOverlay className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm" />
                 <DialogContent
@@ -492,6 +508,40 @@ export default function StartWorkoutPage({ params }: { params: Promise<{ id: str
                             className="bg-red-600 py-2.5 px-8 rounded-lg font-medium hover:bg-red-700 transition-colors duration-300"
                         >
                             Entendi
+                        </button>
+                    </div>
+                </DialogContent>
+            </Dialog>
+
+            {/* Cancel Confirmation Modal */}
+            <Dialog open={cancelModalOpen} onOpenChange={setCancelModalOpen}>
+                <DialogOverlay className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm" />
+                <DialogContent
+                    className="w-[95%] rounded-lg sm:max-w-[425px] bg-zinc-900 border-0 shadow-lg"
+                    onPointerDownOutside={(e) => e.preventDefault()}
+                >
+                    <DialogHeader className="flex flex-col items-center">
+                        <div className="flex justify-center items-center rounded-full bg-red-500/10 w-16 h-16 mb-4">
+                            <AlertCircle size={32} className="text-red-500" />
+                        </div>
+                        <DialogTitle className="text-xl font-bold mb-4">Cancelar treino?</DialogTitle>
+                        <div className="text-center text-zinc-300 mb-2">
+                            Se cancelar o treino, todo o progresso será perdido e nenhum histórico será registrado.
+                        </div>
+                    </DialogHeader>
+
+                    <div className="flex justify-between gap-4 pb-2 px-4 mt-6">
+                        <button
+                            onClick={() => setCancelModalOpen(false)}
+                            className="flex-1 bg-zinc-700 py-2.5 rounded-lg font-medium hover:bg-zinc-600 transition-colors duration-300"
+                        >
+                            Voltar
+                        </button>
+                        <button
+                            onClick={confirmCancel}
+                            className="flex-1 bg-red-600 py-2.5 rounded-lg font-medium hover:bg-red-700 transition-colors duration-300"
+                        >
+                            Cancelar treino
                         </button>
                     </div>
                 </DialogContent>
