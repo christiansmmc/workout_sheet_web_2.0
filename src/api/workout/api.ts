@@ -62,11 +62,7 @@ export const deleteWorkoutRequest = async (workoutId: string): Promise<AxiosResp
 export const createWorkoutRequest = async (payload: CreateWorkoutRequest) => {
     const promise = api.post(`/workouts`, payload);
 
-    return await toastService.promise(promise, {
-        pending: "Criando treino...",
-        success: "Treino criado com sucesso",
-        error: "Ocorreu um erro inesperado",
-    });
+    return await promise;
 };
 
 export const updateWorkoutsListOrderRequest = async (payload: UpdateWorkoutsListOrderRequest[]) => {

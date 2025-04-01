@@ -34,3 +34,16 @@ export interface UpdateWorkoutsListOrderRequest {
     id: string;
     listOrder: number;
 }
+
+export interface WorkoutRecordRequest {
+    workoutId: string;
+    exercises: {
+        exerciseId: string;
+        status: string;
+        exerciseSets: {
+            set: number;
+            reps: number | null;
+            exerciseLoad: number;
+        }[] | null;
+    }[];
+}

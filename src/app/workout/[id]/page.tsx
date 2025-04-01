@@ -1,6 +1,6 @@
 "use client";
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { ArrowLeft, User, Play } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { BeatLoader } from 'react-spinners';
@@ -12,7 +12,13 @@ export default function Page({ params }: { params: Promise<{ id: string }> }) {
     const router = useRouter();
     const unwrappedParams = React.use(params);
 
-    const { isSuccess, data } = useGetExercisesFromWorkoutQuery(unwrappedParams.id);
+    const { isSuccess, data, isError } = useGetExercisesFromWorkoutQuery(unwrappedParams.id);
+
+    useEffect(() => {
+        if (isError) {
+            router.push('/workout');
+        }
+    }, [isError, router]);
 
     const handleGoBack = () => {
         router.push("/workout");

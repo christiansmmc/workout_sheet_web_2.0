@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { BeatLoader } from 'react-spinners';
 import { capitalizeAllWords } from '@/utils/stringUtils';
 import { useGetExercisesFromWorkoutQuery } from '@/api/workout/queries';
+import { useCreateWorkoutRecord } from '@/api/workout-record/queries';
 import ActionButton from '@/components/button/actionButton';
 import {
     Dialog,
@@ -44,6 +45,9 @@ export default function StartWorkoutPage({ params }: { params: Promise<{ id: str
 
     // Fetch workout exercises data
     const { isSuccess, data } = useGetExercisesFromWorkoutQuery(workoutId);
+
+    // Mutation for creating workout record
+    const createWorkoutRecord = useCreateWorkoutRecord();
 
     // State to track exercise completion status and reps per set
     const [exerciseTracking, setExerciseTracking] = useState<ExerciseTrackingState>({});
@@ -146,46 +150,40 @@ export default function StartWorkoutPage({ params }: { params: Promise<{ id: str
 
     const finishWorkout = () => {
         if (areAllExercisesDecided) {
-            // Prepare API payload
             const payload = {
                 workoutId: workoutId,
                 exercises: data?.workoutExercises.map(workoutExercise => {
                     const exerciseTracked = exerciseTracking[workoutExercise.id];
+                    const repsPerSet = exerciseTracked?.repsPerSet || [];
 
-                    // Determine if any reps data was entered
-                    const hasAnyRepsData = exerciseTracked.repsPerSet.some(reps => reps !== null);
+                    const hasAnyRepsData = repsPerSet.some(reps => reps !== null);
 
-                    // Format sets data
-                    const sets = workoutExercise.sets ? Array.from({ length: workoutExercise.sets }).map((_, index) => {
-                        // If no reps data at all was entered, set all to null
-                        // If some reps data was entered but this set is null, set to 0
-                        // Otherwise use the entered value
-                        const repsValue = !hasAnyRepsData ? null :
-                            (exerciseTracked.repsPerSet[index] === null ? 0 : exerciseTracked.repsPerSet[index]);
-
-                        return {
+                    const sets = hasAnyRepsData
+                        ? repsPerSet.map((reps, index) => ({
                             set: index + 1,
-                            reps: repsValue
-                        };
-                    }) : [];
+                            reps: reps === null ? 0 : reps,
+                            exerciseLoad: workoutExercise.exerciseLoad
+                        }))
+                        : null;
 
                     return {
-                        id: workoutExercise.exercise.id,
+                        exerciseId: workoutExercise.exercise.id,
                         status: exerciseTracked.status.toUpperCase(),
-                        sets: sets
+                        exerciseSets: sets
                     };
                 }) || []
             };
 
-            // Here you would send the data to the API
-            console.log("Workout completed, payload:", payload);
-
-            // Navigate back to workouts page
-            router.push("/workout");
+            createWorkoutRecord.mutate(payload, {
+                onSuccess: () => router.push("/workout"),
+                onError: () => router.push("/workout"),
+            });
         } else {
             setAlertModalOpen(true);
         }
     };
+
+
 
     return (
         <main className='app-container'>
@@ -263,20 +261,63 @@ export default function StartWorkoutPage({ params }: { params: Promise<{ id: str
 
                                         {/* Exercise Status Indicator */}
                                         {isDecided && (
-                                            <div className={`flex items-center justify-between px-4 py-2 ${tracking.status === 'completed' ? 'bg-green-500/10' : 'bg-orange-500/10'
-                                                }`}>
-                                                <span className={`text-sm font-medium ${tracking.status === 'completed' ? 'text-green-500' : 'text-orange-500'
-                                                    }`}>
-                                                    {tracking.status === 'completed' ? 'Exercício concluído' : 'Exercício pulado'}
-                                                </span>
-                                                <button
-                                                    onClick={() => resetExerciseStatus(exerciseId)}
-                                                    className="flex items-center gap-1 text-zinc-400 hover:text-zinc-300 transition-colors duration-200"
-                                                    title="Desfazer decisão"
-                                                >
-                                                    <RotateCcw size={16} />
-                                                    <span className="text-sm">Desfazer</span>
-                                                </button>
+                                            <div className={`flex flex-col px-4 py-2 ${tracking.status === 'completed' ? 'bg-green-500/10' : 'bg-orange-500/10'}`}>
+                                                <div className="flex items-center justify-between">
+                                                    <span className={`text-sm font-medium ${tracking.status === 'completed' ? 'text-green-500' : 'text-orange-500'}`}>
+                                                        {tracking.status === 'completed' ? 'Exercício concluído' : 'Exercício pulado'}
+                                                    </span>
+                                                    <button
+                                                        onClick={() => resetExerciseStatus(exerciseId)}
+                                                        className="flex items-center gap-1 text-zinc-400 hover:text-zinc-300 transition-colors duration-200"
+                                                        title="Desfazer decisão"
+                                                    >
+                                                        <RotateCcw size={16} />
+                                                        <span className="text-sm">Desfazer</span>
+                                                    </button>
+                                                </div>
+
+                                                {/* Exibir resumo das repetições quando o exercício for concluído */}
+                                                {tracking.status === 'completed' && (
+                                                    <>
+                                                        {tracking.repsPerSet.some(reps => reps && reps > 0) ? (
+                                                            <div className="mt-3 mb-1">
+                                                                <div className="flex items-center justify-between text-xs text-zinc-400 mb-1">
+                                                                    <span>Repetições por série</span>
+                                                                    <span>Meta: {workoutExercise.reps} reps</span>
+                                                                </div>
+                                                                <div className="grid grid-cols-1 gap-2 mt-1">
+                                                                    {tracking.repsPerSet.map((reps, index) => {
+                                                                        // Calcular a porcentagem para a barra de progresso
+                                                                        const targetReps = workoutExercise.reps || 1;
+                                                                        const percent = reps ? Math.min(100, (reps / targetReps) * 100) : 0;
+                                                                        const barColor = percent >= 100 ? 'bg-green-500' : percent >= 75 ? 'bg-blue-500' : percent >= 50 ? 'bg-amber-500' : 'bg-red-500';
+
+                                                                        return (
+                                                                            <div key={index} className="flex flex-col">
+                                                                                <div className="flex justify-between items-center mb-1">
+                                                                                    <span className="text-xs text-zinc-300">Série {index + 1}</span>
+                                                                                    <span className="text-xs font-medium">{reps || 0} reps</span>
+                                                                                </div>
+                                                                                <div className="h-2 w-full bg-zinc-700 rounded-full overflow-hidden">
+                                                                                    <div
+                                                                                        className={`h-full ${barColor} transition-all duration-500 ease-out`}
+                                                                                        style={{ width: `${percent}%` }}
+                                                                                    />
+                                                                                </div>
+                                                                            </div>
+                                                                        );
+                                                                    })}
+                                                                </div>
+                                                            </div>
+                                                        ) : (
+                                                            <div className="mt-2">
+                                                                <p className="text-xs text-zinc-400">
+                                                                    Exercício concluído sem detalhamento de repetições
+                                                                </p>
+                                                            </div>
+                                                        )}
+                                                    </>
+                                                )}
                                             </div>
                                         )}
 
@@ -328,20 +369,67 @@ export default function StartWorkoutPage({ params }: { params: Promise<{ id: str
                                         {!isDecided && tracking.showRepsInput && (
                                             <div className="px-4 pb-4 pt-2 border-t border-zinc-700">
                                                 <p className="text-sm text-zinc-400 mb-3">Repetições realizadas por série:</p>
-                                                <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                                     {tracking.repsPerSet.map((reps, index) => (
-                                                        <div key={index} className="flex items-center">
-                                                            <span className="text-sm text-zinc-400 mr-2">Série {index + 1}:</span>
-                                                            <input
-                                                                type="number"
-                                                                placeholder={`${workoutExercise.reps || 0}`}
-                                                                value={reps === null ? '' : reps}
-                                                                onChange={(e) => {
-                                                                    const value = e.target.value ? Number(e.target.value) : null;
-                                                                    updateRepsForSet(exerciseId, index, value);
-                                                                }}
-                                                                className="w-16 h-9 text-center bg-zinc-900 rounded-lg placeholder:text-white focus:outline-none focus:ring-2 focus:ring-red-500 transition-all duration-300"
-                                                            />
+                                                        <div key={index} className="relative flex flex-col">
+                                                            <label className="text-sm text-zinc-400 mb-1">
+                                                                Série {index + 1}
+                                                            </label>
+                                                            <div className="flex items-center w-full">
+                                                                <button
+                                                                    className="flex items-center justify-center h-12 w-12 bg-zinc-800 border border-zinc-700 rounded-l-lg hover:bg-zinc-700 active:bg-zinc-600 transition-all duration-200"
+                                                                    onClick={() => {
+                                                                        const currentValue = reps || 0;
+                                                                        if (currentValue > 0) {
+                                                                            updateRepsForSet(exerciseId, index, currentValue - 1);
+                                                                        }
+                                                                    }}
+                                                                >
+                                                                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-zinc-400">
+                                                                        <path d="M5 12h14"></path>
+                                                                    </svg>
+                                                                </button>
+
+                                                                <input
+                                                                    type="number"
+                                                                    placeholder={`${workoutExercise.reps || 0}`}
+                                                                    value={reps === null ? '' : reps}
+                                                                    onChange={(e) => {
+                                                                        const value = e.target.value ? Number(e.target.value) : null;
+                                                                        updateRepsForSet(exerciseId, index, value);
+                                                                    }}
+                                                                    className="w-full h-12 text-center border-y border-zinc-700 bg-zinc-800 placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-red-500 transition-all duration-300"
+                                                                />
+
+                                                                <button
+                                                                    className="flex items-center justify-center h-12 w-12 bg-zinc-800 border border-zinc-700 rounded-r-lg hover:bg-zinc-700 active:bg-zinc-600 transition-all duration-200"
+                                                                    onClick={() => {
+                                                                        const currentValue = reps || 0;
+                                                                        updateRepsForSet(exerciseId, index, currentValue + 1);
+                                                                    }}
+                                                                >
+                                                                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-zinc-400">
+                                                                        <path d="M12 5v14M5 12h14"></path>
+                                                                    </svg>
+                                                                </button>
+                                                            </div>
+
+                                                            {/* Mostrar uma barra de progresso durante a entrada */}
+                                                            <div className="flex items-center w-full mt-1">
+                                                                <div className="h-1 w-full bg-zinc-700 rounded-full overflow-hidden">
+                                                                    <div
+                                                                        className={`h-full transition-all duration-300 ease-out ${reps === null ? 'bg-zinc-600' :
+                                                                            reps >= (workoutExercise.reps || 0) ? 'bg-green-500' :
+                                                                                reps >= (workoutExercise.reps || 0) * 0.7 ? 'bg-blue-500' :
+                                                                                    'bg-amber-500'
+                                                                            }`}
+                                                                        style={{ width: `${reps ? Math.min(100, (reps / (workoutExercise.reps || 1)) * 100) : 0}%` }}
+                                                                    />
+                                                                </div>
+                                                                <span className="ml-2 text-xs text-zinc-400">
+                                                                    {reps || 0}/{workoutExercise.reps || 0}
+                                                                </span>
+                                                            </div>
                                                         </div>
                                                     ))}
                                                 </div>
