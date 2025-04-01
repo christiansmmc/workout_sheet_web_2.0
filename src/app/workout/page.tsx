@@ -177,7 +177,6 @@ export default function Page() {
               ) : (
                 <DndContext
                   sensors={sensors}
-                  collisionDetection={closestCenter}
                   onDragStart={handleDragStart}
                   onDragEnd={handleDragEnd}
                 >

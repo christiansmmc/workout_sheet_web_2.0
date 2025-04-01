@@ -1,6 +1,5 @@
 import { CreateWorkoutRequest, UpdateWorkoutsListOrderRequest } from "@/api/interfaces/workout";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useNavigate, useRouter } from "react-router-dom";
 import {
     createWorkoutRequest,
     deleteWorkoutRequest,
