@@ -7,7 +7,7 @@ import { useRouter } from 'next/navigation';
 import WorkoutCard from '@/components/card/workoutCard';
 import { useGetWorkoutsQuery, usePatchWorkoutsListOrderMutation } from '@/api/workout/queries';
 import { useQueryClient } from '@tanstack/react-query';
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import {
   DndContext,
   DragEndEvent,
@@ -63,6 +63,7 @@ export default function Page() {
   const queryClient = useQueryClient();
   const [activeId, setActiveId] = useState<string | null>(null);
   const [workouts, setWorkouts] = useState<Workout[]>([]);
+  const [isLoaded, setIsLoaded] = useState(false);
 
   const { isSuccess, data } = useGetWorkoutsQuery();
   const { mutate: patchWorkoutsListOrderMutate, isPending: patchWorkoutsListOrderIsPending } = usePatchWorkoutsListOrderMutation();
@@ -71,6 +72,18 @@ export default function Page() {
   useMemo(() => {
     if (isSuccess && data) {
       setWorkouts(data.sort((a, b) => a.listOrder - b.listOrder));
+    }
+  }, [isSuccess, data]);
+
+  // Separate effect for animation delay
+  useEffect(() => {
+    if (isSuccess && data) {
+      const timer = setTimeout(() => {
+        setIsLoaded(true);
+      }, 150);
+
+      // Cleanup function to prevent setting state on unmounted component
+      return () => clearTimeout(timer);
     }
   }, [isSuccess, data]);
 
@@ -143,15 +156,18 @@ export default function Page() {
   return (
     <main className="app-container">
       {/* Header */}
-      <header className="flex items-center justify-between px-6 sm:px-10 bg-zinc-800 h-16 shadow-lg">
+      <header className="flex items-center justify-between px-6 sm:px-10 bg-zinc-800 h-16 shadow-lg 
+                        sticky top-0 z-10 backdrop-blur-sm bg-opacity-90">
         <div
           onClick={handleLogout}
-          className="cursor-pointer p-2 rounded-full active:bg-neutral-600 lg:hover:bg-neutral-700 transition-colors duration-200">
+          className="cursor-pointer p-2 rounded-full active:bg-neutral-600 lg:hover:bg-neutral-700 
+                   transition-all duration-200 hover:scale-105">
           <DoorOpen size={24} />
         </div>
         <h1 className="text-xl font-semibold">Meus Treinos</h1>
         <div
-          className="cursor-pointer p-2 rounded-full active:bg-neutral-600 lg:hover:bg-neutral-700 transition-colors duration-200">
+          className="cursor-pointer p-2 rounded-full active:bg-neutral-600 lg:hover:bg-neutral-700 
+                   transition-all duration-200 hover:scale-105">
           <User size={24} />
         </div>
       </header>
@@ -167,11 +183,18 @@ export default function Page() {
                   strategy={verticalListSortingStrategy}
                 >
                   {workouts.map((workout) => (
-                    <SortableWorkoutItem
+                    <div
                       key={workout.id}
-                      workout={workout}
-                      onClick={handleEnterWorkout}
-                    />
+                      className={`transition-opacity duration-500 ${isLoaded ? 'opacity-100' : 'opacity-0'}`}
+                      style={{
+                        transitionDelay: `${workouts.indexOf(workout) * 50}ms`
+                      }}
+                    >
+                      <SortableWorkoutItem
+                        workout={workout}
+                        onClick={handleEnterWorkout}
+                      />
+                    </div>
                   ))}
                 </SortableContext>
               ) : (
@@ -185,23 +208,33 @@ export default function Page() {
                     strategy={verticalListSortingStrategy}
                   >
                     {workouts.map((workout) => (
-                      <SortableWorkoutItem
+                      <div
                         key={workout.id}
-                        workout={workout}
-                        onClick={handleEnterWorkout}
-                      />
+                        className={`transition-opacity duration-500 ${isLoaded ? 'opacity-100' : 'opacity-0'}`}
+                        style={{
+                          transitionDelay: `${workouts.indexOf(workout) * 50}ms`
+                        }}
+                      >
+                        <SortableWorkoutItem
+                          workout={workout}
+                          onClick={handleEnterWorkout}
+                        />
+                      </div>
                     ))}
                   </SortableContext>
                 </DndContext>
               )
             ) : (
-              <div className="flex flex-col items-center justify-center h-80 text-center p-6 bg-zinc-800 rounded-xl shadow-lg">
-                <p className="text-xl text-zinc-400 mb-4">Nenhum treino encontrado</p>
-                <p className="text-zinc-500 mb-6">Crie seu primeiro treino para começar</p>
+              <div className="flex flex-col items-center justify-center h-80 text-center p-6 
+                            bg-zinc-800 rounded-xl shadow-lg border border-zinc-700
+                            transition-all duration-500 ease-in-out opacity-0 animate-fadeIn">
+                <p className="text-xl text-zinc-300 mb-4">Nenhum treino encontrado</p>
+                <p className="text-zinc-400 mb-6">Crie seu primeiro treino para começar</p>
                 <button
                   onClick={handleEnterCreateWorkout}
-                  className="flex items-center gap-2 bg-red-600 text-white py-3 px-6 rounded-lg hover:bg-red-700 
-                            transition-colors duration-300 active:scale-95 transform">
+                  className="flex items-center gap-2 bg-red-600 text-white py-3 px-6 rounded-lg 
+                            hover:bg-red-700 transition-all duration-300 active:scale-95 transform
+                            hover:shadow-lg hover:translate-y-[-2px]">
                   <PlusCircle size={20} />
                   Criar treino
                 </button>
@@ -217,12 +250,13 @@ export default function Page() {
 
       {/* Create Workout Button - Only show if there are workouts */}
       {isSuccess && data && data.length > 0 && (
-        <section className="fixed bottom-6 right-6 md:bottom-8 md:right-8">
+        <section className="fixed bottom-6 right-6 md:bottom-8 md:right-8 
+                          transition-all duration-500 animate-fadeIn">
           <button
             onClick={handleEnterCreateWorkout}
             className="flex items-center justify-center bg-red-600 text-white p-4 rounded-full shadow-lg 
-                     hover:bg-red-700 transition-colors duration-300 
-                     active:scale-95 transform">
+                     hover:bg-red-700 transition-all duration-300 
+                     hover:shadow-xl hover:scale-110 active:scale-95 transform">
             <PlusCircle size={24} />
           </button>
         </section>

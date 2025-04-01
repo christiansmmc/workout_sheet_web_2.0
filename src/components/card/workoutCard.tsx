@@ -71,21 +71,30 @@ const WorkoutCard = ({ workout, onClick, dragHandleProps, isDragging }: WorkoutC
 
     return (
         <div
-            className={`flex justify-between items-center w-full rounded-lg overflow-hidden bg-zinc-800 shadow-md transition-all duration-200 hover:shadow-lg h-20 sm:h-24 border border-zinc-700 ${isDragging ? 'opacity-50 shadow-xl ring-2 ring-red-500' : ''}`}
+            className={`flex justify-between items-center w-full rounded-lg overflow-hidden 
+                      bg-zinc-800 shadow-md transition-all duration-300 ease-in-out 
+                      hover:shadow-lg hover:translate-y-[-2px] h-20 sm:h-24 
+                      border border-zinc-700 
+                      ${isDragging ? 'opacity-60 scale-105 shadow-xl ring-2 ring-red-500 z-10' : ''}`}
         >
             <div className="flex items-center h-full">
                 <div
-                    className="flex items-center justify-center h-full px-3 sm:px-4 text-zinc-400 cursor-grab active:cursor-grabbing hover:text-white hover:bg-zinc-700 transition-colors duration-200"
+                    className="flex items-center justify-center h-full px-3 sm:px-4 
+                              text-zinc-400 cursor-grab active:cursor-grabbing 
+                              hover:text-white hover:bg-zinc-700 transition-all duration-200"
                     {...dragHandleProps}
                 >
                     <GripVertical size={22} />
                 </div>
             </div>
             <div
-                className="flex items-center gap-3 sm:gap-5 p-4 sm:p-5 flex-1 cursor-pointer h-full"
+                className="flex items-center gap-3 sm:gap-5 p-4 sm:p-5 flex-1 cursor-pointer h-full
+                          transition-colors duration-200 hover:bg-zinc-750"
                 onClick={() => onClick(workout.id)}
             >
-                <div className="flex-shrink-0 p-2.5 sm:p-3 bg-zinc-700 rounded-lg">
+                <div className="flex-shrink-0 p-2.5 sm:p-3 bg-zinc-700 rounded-lg 
+                              shadow-inner transition-all duration-200 
+                              group-hover:bg-zinc-600 group-hover:shadow-md">
                     <Dumbbell size={26} className="text-red-500" />
                 </div>
                 <p className="text-lg sm:text-xl font-medium truncate">{workout.name}</p>
@@ -95,16 +104,20 @@ const WorkoutCard = ({ workout, onClick, dragHandleProps, isDragging }: WorkoutC
                 <Dialog open={open} onOpenChange={setOpen}>
                     <DialogTrigger asChild>
                         <button
-                            className="h-full px-5 sm:px-6 text-zinc-400 hover:text-white hover:bg-zinc-700 transition-colors duration-200"
+                            className="h-full px-5 sm:px-6 text-zinc-400 
+                                     hover:text-white hover:bg-zinc-700 
+                                     transition-all duration-200"
                             aria-label="Edit workout"
                         >
                             <Pencil size={24} />
                         </button>
                     </DialogTrigger>
-                    <DialogOverlay className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm" />
+                    <DialogOverlay className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm 
+                                           animate-in fade-in duration-200" />
                     <DialogContent
                         onOpenAutoFocus={(e) => e.preventDefault()}
-                        className="w-[90%] max-w-md rounded-lg bg-zinc-900 border-0 p-0 shadow-xl"
+                        className="w-[90%] max-w-md rounded-lg bg-zinc-900 border-0 p-0 shadow-xl
+                                 animate-in fade-in-50 slide-in-from-bottom-10 duration-300"
                         aria-describedby="edit-workout-description"
                     >
                         <DialogHeader className="px-6 pt-6 pb-4 border-b border-zinc-800">
@@ -115,7 +128,7 @@ const WorkoutCard = ({ workout, onClick, dragHandleProps, isDragging }: WorkoutC
                         </DialogHeader>
 
                         <div className="p-6">
-                            <label htmlFor="workout-name" className="block text-sm text-zinc-400 mb-2">
+                            <label htmlFor="workout-name" className="block text-sm text-zinc-400 mb-2 font-medium">
                                 Nome do treino
                             </label>
                             <input
@@ -124,9 +137,9 @@ const WorkoutCard = ({ workout, onClick, dragHandleProps, isDragging }: WorkoutC
                                 value={inputValue}
                                 onChange={handleInputChange}
                                 className="w-full px-4 py-3 bg-zinc-800 rounded-lg 
-                                         text-white placeholder-zinc-500
-                                         focus:outline-none focus:ring-2 focus:ring-red-500
-                                         transition-all duration-300"
+                                         text-white placeholder-zinc-500 border border-zinc-700
+                                         focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent
+                                         transition-all duration-200"
                                 placeholder="Nome do treino"
                                 autoComplete="off"
                             />
@@ -137,8 +150,8 @@ const WorkoutCard = ({ workout, onClick, dragHandleProps, isDragging }: WorkoutC
                                 onClick={handleDeleteWorkout}
                                 disabled={isSubmitting}
                                 className="flex items-center justify-center gap-2 px-4 py-2 rounded-lg 
-                                         bg-zinc-800 text-red-500 hover:bg-zinc-700 
-                                         transition-colors duration-200 active:scale-95"
+                                         bg-zinc-800 text-red-500 hover:bg-zinc-700 border border-zinc-700
+                                         transition-all duration-200 active:scale-95"
                             >
                                 {isSubmitting ? (
                                     <BeatLoader size={8} color="#dc2626" />
@@ -153,14 +166,15 @@ const WorkoutCard = ({ workout, onClick, dragHandleProps, isDragging }: WorkoutC
                             <div className="flex gap-3">
                                 <button
                                     className="px-4 py-2 rounded-lg bg-zinc-700 text-white hover:bg-zinc-600 
-                                             transition-colors duration-200 active:scale-95"
+                                             transition-all duration-200 active:scale-95"
                                     onClick={handleClose}
                                 >
                                     Cancelar
                                 </button>
                                 <button
                                     className="px-4 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700 
-                                             transition-colors duration-200 active:scale-95"
+                                             transition-all duration-200 active:scale-95
+                                             hover:shadow-lg"
                                     onClick={handleEditWorkout}
                                     disabled={isSubmitting}
                                 >
@@ -173,7 +187,9 @@ const WorkoutCard = ({ workout, onClick, dragHandleProps, isDragging }: WorkoutC
 
                 <button
                     onClick={() => onClick(workout.id)}
-                    className="h-full px-5 sm:px-7 bg-red-600 text-white hover:bg-red-700 transition-colors duration-200 flex items-center justify-center rounded-r-lg"
+                    className="h-full px-5 sm:px-7 bg-red-600 text-white hover:bg-red-700 
+                             transition-all duration-200 flex items-center justify-center rounded-r-lg
+                             hover:shadow-inner"
                     aria-label="View workout"
                 >
                     <ChevronRight size={28} />
