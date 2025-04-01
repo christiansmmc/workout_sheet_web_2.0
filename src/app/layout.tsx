@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { ReactQueryProvider } from "@/app/ReactQueryProvider";
 import { Inter } from "next/font/google";
@@ -14,15 +14,16 @@ export const metadata: Metadata = {
     description: "Aplicativo para registro e acompanhamento de treinos de academia de forma simples e intuitiva",
     applicationName: "MeuTreino",
     authors: [{ name: "MeuTreino Team" }],
-    colorScheme: "dark",
-    themeColor: "#dc2626", // red-600
-    viewport: {
-        width: 'device-width',
-        initialScale: 1,
-        minimumScale: 1,
-        userScalable: false,
-    },
     manifest: "/manifest.json",
+};
+
+export const viewport: Viewport = {
+    width: 'device-width',
+    initialScale: 1,
+    minimumScale: 1,
+    userScalable: false,
+    colorScheme: 'dark',
+    themeColor: '#dc2626', // red-600
 };
 
 export default function RootLayout({
