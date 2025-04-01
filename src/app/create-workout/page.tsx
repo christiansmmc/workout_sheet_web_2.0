@@ -33,6 +33,8 @@ export default function Page() {
   const [workoutSets, setWorkoutSets] = useState<number>(0);
   const [workoutExercises, setWorkoutExercises] = useState<string[]>([]);
   const [workoutName, setWorkoutName] = useState<string>('');
+  const [exerciseNameFilter, setExerciseNameFilter] = useState<string>('');
+  const [exerciseBodyPartFilter, setExerciseBodyPartFilter] = useState<string>('');
 
   const { isLoading, data: exercises } = useGetExercisesQuery(fetchExercises, workoutBodyParts);
 
@@ -292,44 +294,73 @@ export default function Page() {
                 <MoonLoader color="#dc2626" />
               </div>
             ) : (
-              <div className="flex-1 overflow-y-auto mt-4 px-1">
-                <div className="flex flex-col gap-3 pb-2">
-                  {exercises?.map((exercise, index) => {
-                    const isSelected = workoutExercises.includes(exercise.id);
+              <div className="flex-1 flex flex-col min-h-0 mt-4 px-1">
+                <div className="flex flex-col gap-3 mb-3">
+                  <div className="flex gap-3 flex-wrap">
+                    <input
+                      type="text"
+                      placeholder="Buscar por nome..."
+                      value={exerciseNameFilter}
+                      onChange={(e) => setExerciseNameFilter(e.target.value)}
+                      className="flex-1 h-10 rounded-lg px-4 text-sm bg-zinc-800 border border-zinc-700 focus:outline-none focus:ring-2 focus:ring-red-500 transition-all duration-200"
+                    />
+                    <select
+                      value={exerciseBodyPartFilter}
+                      onChange={(e) => setExerciseBodyPartFilter(e.target.value)}
+                      className="w-full sm:w-auto min-w-[180px] h-10 rounded-lg px-4 text-sm bg-zinc-800 border border-zinc-700 focus:outline-none focus:ring-2 focus:ring-red-500 transition-all duration-200"
+                    >
+                      <option value="">Todos os músculos</option>
+                      {workoutBodyParts.map((bodyPart) => (
+                        <option key={bodyPart} value={bodyPart}>{bodyPart}</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+                <div className="overflow-y-auto flex-1 pb-4">
+                  <div className="flex flex-col gap-3 pb-2">
+                    {exercises
+                      ?.filter((exercise) => {
+                        const nameMatch = exercise.name.toLowerCase().includes(exerciseNameFilter.toLowerCase());
+                        const bodyPartMatch = exerciseBodyPartFilter ? exercise.bodyPart === exerciseBodyPartFilter : true;
+                        return nameMatch && bodyPartMatch;
+                      })
+                      .map((exercise, index) => {
+                        const isSelected = workoutExercises.includes(exercise.id);
 
-                    return (
-                      <div
-                        key={index}
-                        onClick={() => handleSelectExercise(exercise.id)}
-                        className={cn(
-                          "flex justify-between items-center p-4 rounded-lg transition-all duration-200 cursor-pointer relative overflow-hidden",
-                          isSelected
-                            ? "bg-zinc-700 border border-green-500 shadow-md"
-                            : "bg-zinc-800 border border-zinc-700 hover:bg-zinc-700"
-                        )}
-                      >
-                        {isSelected && (
-                          <div className="absolute top-0 left-0 w-2 h-full bg-green-500" />
-                        )}
-                        <div className="text-base sm:text-lg font-medium">{capitalize(exercise.name)}</div>
-                        <div className="flex items-center gap-3">
+                        return (
                           <div
+                            key={index}
+                            onClick={() => handleSelectExercise(exercise.id)}
                             className={cn(
-                              getBodyPartColor(exercise.bodyPart),
-                              "flex justify-center items-center h-8 px-3 sm:px-4 rounded-lg text-xs sm:text-sm font-medium"
+                              "flex justify-between items-center p-4 rounded-lg transition-all duration-200 cursor-pointer relative overflow-hidden",
+                              isSelected
+                                ? "bg-zinc-700 border border-green-500 shadow-md"
+                                : "bg-zinc-800 border border-zinc-700 hover:bg-zinc-700"
                             )}
                           >
-                            {exercise.bodyPart}
-                          </div>
-                          {isSelected && (
-                            <div className="flex items-center justify-center rounded-full bg-green-500 w-6 h-6 text-white shadow-sm">
-                              <Check size={14} strokeWidth={3} />
+                            {isSelected && (
+                              <div className="absolute top-0 left-0 w-2 h-full bg-green-500" />
+                            )}
+                            <div className="text-base sm:text-lg font-medium">{capitalize(exercise.name)}</div>
+                            <div className="flex items-center gap-3">
+                              <div
+                                className={cn(
+                                  getBodyPartColor(exercise.bodyPart),
+                                  "flex justify-center items-center h-8 px-3 sm:px-4 rounded-lg text-xs sm:text-sm font-medium"
+                                )}
+                              >
+                                {exercise.bodyPart}
+                              </div>
+                              {isSelected && (
+                                <div className="flex items-center justify-center rounded-full bg-green-500 w-6 h-6 text-white shadow-sm">
+                                  <Check size={14} strokeWidth={3} />
+                                </div>
+                              )}
                             </div>
-                          )}
-                        </div>
-                      </div>
-                    );
-                  })}
+                          </div>
+                        );
+                      })}
+                  </div>
                 </div>
               </div>
             )}
@@ -359,12 +390,12 @@ export default function Page() {
         )}
 
         {/* Footer */}
-        <div className="bg-zinc-900/95 backdrop-blur-sm p-2 sm:p-4 border-t border-zinc-800 sm:px-6 mt-auto">
+        <div className="bg-zinc-900/95 backdrop-blur-sm p-2 sm:p-3 border-t border-zinc-800 sm:px-6 mt-auto">
           <div className="max-w-3xl mx-auto flex justify-center">
             <ActionButton
               onClick={handleNextStep}
               className={cn(
-                "mt-0 sm:mt-4 w-full sm:w-64",
+                "mt-0 w-full sm:w-64 h-10 sm:h-11",
                 (currentStep === 1 && workoutBodyParts.length === 0) ||
                   (currentStep === 2 && !workoutSetsReps) ||
                   (currentStep === 3 && workoutExercises.length === 0) ||
@@ -374,7 +405,7 @@ export default function Page() {
               )}
             >
               {currentStep === 4 ? (
-                isLoadingCreateWorkout ? <MoonLoader size={24} color="#fff" /> : "Criar Treino"
+                isLoadingCreateWorkout ? <MoonLoader size={20} color="#fff" /> : "Criar Treino"
               ) : "Continuar"}
             </ActionButton>
           </div>
