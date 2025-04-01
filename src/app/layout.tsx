@@ -23,7 +23,7 @@ export const viewport: Viewport = {
     minimumScale: 1,
     userScalable: false,
     colorScheme: 'dark',
-    themeColor: '#dc2626', // red-600
+    themeColor: '#18181b', // zinc-900 - mesma cor do fundo da aplicação
 };
 
 export default function RootLayout({
