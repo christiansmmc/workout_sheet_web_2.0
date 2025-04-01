@@ -54,6 +54,7 @@ export default function StartWorkoutPage({ params }: { params: Promise<{ id: str
     const [alertModalOpen, setAlertModalOpen] = useState(false);
     const [cancelModalOpen, setCancelModalOpen] = useState(false);
     const [pendingExercises, setPendingExercises] = useState<string[]>([]);
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
     // Initialize tracking state when data is loaded
     React.useEffect(() => {
@@ -170,6 +171,7 @@ export default function StartWorkoutPage({ params }: { params: Promise<{ id: str
 
     const finishWorkout = () => {
         if (areAllExercisesDecided) {
+            setIsSubmitting(true);
             const payload = {
                 workoutId: workoutId,
                 exercises: data?.workoutExercises.map(workoutExercise => {
@@ -197,6 +199,7 @@ export default function StartWorkoutPage({ params }: { params: Promise<{ id: str
             createWorkoutRecord.mutate(payload, {
                 onSuccess: () => router.push("/workout"),
                 onError: () => router.push("/workout"),
+                onSettled: () => setIsSubmitting(false)
             });
         } else {
             setAlertModalOpen(true);
@@ -204,36 +207,15 @@ export default function StartWorkoutPage({ params }: { params: Promise<{ id: str
     };
 
     return (
-        <main className='app-container'>
-            <header className={"flex items-center justify-between px-4 md:px-10 bg-zinc-800 h-16 shadow-lg"}>
-                <div
-                    onClick={handleCancel}
-                    className='cursor-pointer p-2 rounded-md hover:bg-zinc-700 active:bg-zinc-600 transition-colors'>
-                    <span className="font-medium text-sm md:text-base">Cancelar</span>
-                </div>
+        <main className='app-container relative'>
+            {/* Header condensado e não expansível */}
+            <header className="sticky top-0 z-10 flex items-center justify-center px-4 bg-zinc-800 h-12 shadow-lg border-b border-zinc-700">
                 {isSuccess && data && (
-                    <h1 className="text-xl font-semibold text-white truncate max-w-[50%]">{data.name}</h1>
+                    <h1 className="text-lg font-semibold text-white truncate max-w-[80%]">{data.name}</h1>
                 )}
-                <div>
-                    <button
-                        onClick={finishWorkout}
-                        className={`rounded-md bg-red-600 hover:bg-red-700 py-2 px-3 text-sm md:text-base font-medium transition-colors ${!areAllExercisesDecided ? 'opacity-70' : ''}`}
-                    >
-                        Concluir
-                    </button>
-                </div>
             </header>
 
-            {/* Progress bar */}
-            <div className="w-full bg-zinc-700 h-1.5">
-                <div
-                    className="bg-red-600 h-full transition-all duration-300 ease-out"
-                    style={{ width: `${progressPercentage}%` }}
-                />
-            </div>
-
-            <div
-                className='flex flex-col items-center pt-4 max-h-[calc(100%-5rem)] overflow-y-auto lg:gap-4 pb-4'>
+            <div className='flex flex-col items-center pt-2 max-h-[calc(100vh-8rem)] overflow-y-auto lg:gap-4'>
                 {isSuccess && data ? (
                     <>
                         {data?.workoutExercises
@@ -260,13 +242,13 @@ export default function StartWorkoutPage({ params }: { params: Promise<{ id: str
                                             }`}
                                     >
                                         {/* Exercise Header */}
-                                        <div className="flex justify-between items-center h-12 mt-2 pb-2 border-b border-zinc-600">
-                                            <div className="ml-3 lg:ml-5 font-medium text-sm md:text-base lg:text-lg">
+                                        <div className="flex justify-between items-center mt-2 pb-2 px-3 border-b border-zinc-600">
+                                            <div className="font-medium text-sm md:text-base lg:text-lg truncate pr-2">
                                                 <p>{capitalizeAllWords(workoutExercise.exercise.name)}</p>
                                             </div>
-                                            <div className="flex items-center gap-2 md:gap-5 mr-2 md:mr-5">
+                                            <div className="flex-shrink-0">
                                                 <div
-                                                    className={`${bodyPartColor} flex justify-center items-center h-7 w-16 md:h-8 md:w-20 lg:w-24 rounded-lg text-xs md:text-sm font-medium`}
+                                                    className={`${bodyPartColor} flex justify-center items-center h-7 px-2 min-w-16 md:h-8 rounded-lg text-xs md:text-sm font-medium`}
                                                 >
                                                     {workoutExercise.exercise.bodyPart}
                                                 </div>
@@ -315,7 +297,7 @@ export default function StartWorkoutPage({ params }: { params: Promise<{ id: str
                                                                     <span>Repetições por série</span>
                                                                     <span>Meta: {workoutExercise.reps} reps</span>
                                                                 </div>
-                                                                <div className="grid grid-cols-1 gap-2 mt-1">
+                                                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-1">
                                                                     {tracking.repsPerSet.map((reps, index) => {
                                                                         // Calcular a porcentagem para a barra de progresso
                                                                         const targetReps = workoutExercise.reps || 1;
@@ -378,7 +360,7 @@ export default function StartWorkoutPage({ params }: { params: Promise<{ id: str
                                                 <div className="flex items-center gap-3">
                                                     <button
                                                         onClick={() => handleExerciseStatus(exerciseId, 'skipped')}
-                                                        className="p-1.5 rounded-full text-orange-500 hover:bg-orange-500/10 transition-colors duration-200"
+                                                        className="p-1.5 rounded-full text-orange-500 hover:bg-orange-500/10 active:bg-orange-500/20 transition-colors duration-200"
                                                         title="Pular exercício"
                                                     >
                                                         <Ban size={24} />
@@ -386,7 +368,7 @@ export default function StartWorkoutPage({ params }: { params: Promise<{ id: str
 
                                                     <button
                                                         onClick={() => handleExerciseStatus(exerciseId, 'completed')}
-                                                        className="p-1.5 rounded-full text-green-500 hover:bg-green-500/10 transition-colors duration-200"
+                                                        className="p-1.5 rounded-full text-green-500 hover:bg-green-500/10 active:bg-green-500/20 transition-colors duration-200"
                                                         title="Completar exercício"
                                                     >
                                                         <CheckCircle size={24} />
@@ -399,7 +381,7 @@ export default function StartWorkoutPage({ params }: { params: Promise<{ id: str
                                         {!isDecided && tracking.showRepsInput && (
                                             <div className="px-4 pb-4 pt-2 border-t border-zinc-700">
                                                 <p className="text-sm text-zinc-400 mb-3">Repetições realizadas por série:</p>
-                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                                     {tracking.repsPerSet.map((reps, index) => (
                                                         <div key={index} className="relative flex flex-col">
                                                             <label className="text-sm text-zinc-400 mb-1">
@@ -422,6 +404,7 @@ export default function StartWorkoutPage({ params }: { params: Promise<{ id: str
 
                                                                 <input
                                                                     type="number"
+                                                                    inputMode="numeric"
                                                                     placeholder={`${workoutExercise.reps || 0}`}
                                                                     value={reps === null ? '' : reps}
                                                                     onChange={(e) => {
@@ -546,6 +529,47 @@ export default function StartWorkoutPage({ params }: { params: Promise<{ id: str
                     </div>
                 </DialogContent>
             </Dialog>
+
+            {/* Fixed footer with progress and action buttons */}
+            <div className="fixed bottom-0 left-0 right-0 bg-zinc-800 shadow-[0_-2px_10px_rgba(0,0,0,0.2)] z-10">
+                {/* Barra de progresso */}
+                <div className="w-full bg-zinc-700 h-1.5">
+                    <div
+                        className="bg-red-600 h-full transition-all duration-300 ease-out"
+                        style={{ width: `${progressPercentage}%` }}
+                    />
+                </div>
+
+                <div className="flex items-center justify-between px-4 py-3">
+                    <div
+                        onClick={handleCancel}
+                        className='cursor-pointer py-1.5 px-3 rounded-md hover:bg-zinc-700 active:bg-zinc-600 transition-colors'>
+                        <span className="font-medium text-sm md:text-base">Cancelar</span>
+                    </div>
+
+                    <div className="flex items-center">
+                        <span className="text-sm text-zinc-400 mr-2">Progresso:</span>
+                        <span className="font-medium text-sm">{progressPercentage}%</span>
+                    </div>
+
+                    <div>
+                        <button
+                            onClick={finishWorkout}
+                            disabled={isSubmitting}
+                            className={`rounded-md bg-red-600 hover:bg-red-700 py-1.5 px-4 text-sm md:text-base font-medium transition-colors ${!areAllExercisesDecided || isSubmitting ? 'opacity-70' : ''}`}
+                        >
+                            {isSubmitting ? (
+                                <span className="flex items-center gap-2">
+                                    <BeatLoader size={8} color="#ffffff" />
+                                    <span>Salvando</span>
+                                </span>
+                            ) : (
+                                "Concluir"
+                            )}
+                        </button>
+                    </div>
+                </div>
+            </div>
         </main>
     );
 } 
