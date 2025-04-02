@@ -30,20 +30,10 @@ export default function Page({ params }: { params: Promise<{ id: string }> }) {
 
     return (
         <main className='app-container'>
-            <header className="sticky top-0 z-10 flex items-center justify-between px-4 bg-zinc-800 h-12 shadow-lg border-b border-zinc-700">
-                <div
-                    onClick={handleGoHome}
-                    className='cursor-pointer p-1.5 rounded-full hover:bg-zinc-700 active:bg-zinc-600 transition-colors'>
-                    <Home size={20} />
-                </div>
-
-                <div className="absolute left-1/2 transform -translate-x-1/2 flex items-center justify-center w-[70%]">
-                    {isSuccess && data && (
-                        <h1 className="text-lg font-semibold text-white truncate text-center">{data.name}</h1>
-                    )}
-                </div>
-
-                <div className="w-[20px]"></div>
+            <header className="sticky top-0 z-10 flex items-center justify-center px-4 bg-zinc-800 h-12 shadow-lg border-b border-zinc-700">
+                {isSuccess && data && (
+                    <h1 className="text-lg font-semibold text-white truncate text-center">{data.name}</h1>
+                )}
             </header>
 
             <div
@@ -73,7 +63,15 @@ export default function Page({ params }: { params: Promise<{ id: string }> }) {
 
             {isSuccess && data && data.workoutExercises.length > 0 && (
                 <div className="fixed bottom-0 left-0 right-0 bg-zinc-800 shadow-[0_-2px_10px_rgba(0,0,0,0.2)] z-10">
-                    <div className="flex items-center justify-center px-4 py-3">
+                    <div className="flex items-center justify-between px-4 py-3">
+                        <button
+                            onClick={handleGoHome}
+                            className='flex items-center justify-center p-1.5 rounded-full hover:bg-zinc-700 active:bg-zinc-600 transition-colors bg-transparent border-0'
+                            aria-label="Voltar para a página inicial"
+                        >
+                            <Home size={20} />
+                        </button>
+
                         <ActionButton
                             onClick={handleStartWorkout}
                             width="w-48"
@@ -83,6 +81,8 @@ export default function Page({ params }: { params: Promise<{ id: string }> }) {
                             <Play size={16} />
                             Iniciar Treino
                         </ActionButton>
+
+                        <div className="w-[28px]"></div>
                     </div>
                 </div>
             )}
