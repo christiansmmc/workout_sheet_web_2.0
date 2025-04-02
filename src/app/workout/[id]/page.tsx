@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect } from 'react';
-import { Home, Play } from 'lucide-react';
+import { ArrowLeft, Play } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { BeatLoader } from 'react-spinners';
 import ExerciseCard from '@/components/card/exerciseCard';
@@ -69,7 +69,7 @@ export default function Page({ params }: { params: Promise<{ id: string }> }) {
                             className='flex items-center justify-center p-1.5 rounded-full hover:bg-zinc-700 active:bg-zinc-600 transition-colors bg-transparent border-0'
                             aria-label="Voltar para a página inicial"
                         >
-                            <Home size={20} />
+                            <ArrowLeft size={24} />
                         </button>
 
                         <ActionButton
