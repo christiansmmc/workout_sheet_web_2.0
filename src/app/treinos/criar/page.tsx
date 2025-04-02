@@ -181,7 +181,7 @@ export default function Page() {
       </div>
 
       {/* Content */}
-      <div className="flex-1 flex flex-col min-h-0 p-4 sm:p-6 max-w-3xl mx-auto w-full">
+      <div className="flex-1 flex flex-col min-h-0 p-4 sm:p-6 pb-20 max-w-3xl mx-auto w-full">
         {/* Step 1: Selecionar Músculos */}
         {currentStep === 1 && (
           <div className="flex flex-col flex-1 gap-6 sm:gap-8">
@@ -390,12 +390,14 @@ export default function Page() {
         )}
 
         {/* Footer */}
-        <div className="bg-zinc-900/95 backdrop-blur-sm p-2 sm:p-3 border-t border-zinc-800 sm:px-6 mt-auto">
-          <div className="max-w-3xl mx-auto flex justify-center">
+        <div className="fixed bottom-0 left-0 right-0 bg-zinc-800 shadow-[0_-2px_10px_rgba(0,0,0,0.2)] z-10">
+          <div className="flex items-center justify-center px-4 py-3">
             <ActionButton
               onClick={handleNextStep}
+              width="w-48"
+              height="h-10"
               className={cn(
-                "mt-0 w-full sm:w-64 h-10 sm:h-11",
+                "flex items-center justify-center",
                 (currentStep === 1 && workoutBodyParts.length === 0) ||
                   (currentStep === 2 && !workoutSetsReps) ||
                   (currentStep === 3 && workoutExercises.length === 0) ||

@@ -657,19 +657,24 @@ export default function StartWorkoutPage({ params }: { params: Promise<{ id: str
                     />
                 </div>
 
-                <div className="flex items-center justify-between px-4 py-3">
+                <div className="flex items-center justify-between px-4 py-3 relative">
+                    {/* Botão Cancelar à esquerda */}
                     <div
                         onClick={handleCancel}
-                        className='cursor-pointer py-1.5 px-3 rounded-md hover:bg-zinc-700 active:bg-zinc-600 transition-colors'>
+                        className='cursor-pointer py-1.5 px-3 rounded-md hover:bg-zinc-700 active:bg-zinc-600 transition-colors z-10'>
                         <span className="font-medium text-sm md:text-base">Cancelar</span>
                     </div>
 
-                    <div className="flex items-center">
-                        <span className="text-sm text-zinc-400 mr-2">Progresso:</span>
-                        <span className="font-medium text-sm">{progressPercentage}%</span>
+                    {/* Progresso centralizado absoluto */}
+                    <div className="absolute left-0 right-0 flex justify-center items-center">
+                        <div className="flex items-center">
+                            <span className="text-sm text-zinc-400 mr-2">Progresso:</span>
+                            <span className="font-medium text-sm">{progressPercentage}%</span>
+                        </div>
                     </div>
 
-                    <div>
+                    {/* Botão Concluir à direita */}
+                    <div className="z-10">
                         <button
                             onClick={finishWorkout}
                             disabled={isSubmitting}

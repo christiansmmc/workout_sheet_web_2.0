@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect } from 'react';
-import { ArrowLeft, User, Play } from 'lucide-react';
+import { ArrowLeft, Play } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { BeatLoader } from 'react-spinners';
 import ExerciseCard from '@/components/card/exerciseCard';
@@ -30,23 +30,14 @@ export default function Page({ params }: { params: Promise<{ id: string }> }) {
 
     return (
         <main className='app-container'>
-            <header className={"flex items-center justify-between px-10 bg-zinc-800 h-16 shadow-lg"}>
-                <div
-                    onClick={handleGoBack}
-                    className='cursor-pointer p-1 active:bg-neutral-600 active:rounded lg:active:bg-neutral-600 lg:hover:bg-neutral-700 lg:hover:rounded'>
-                    <ArrowLeft size={24} />
-                </div>
+            <header className="sticky top-0 z-10 flex items-center justify-center px-4 bg-zinc-800 h-12 shadow-lg border-b border-zinc-700">
                 {isSuccess && data && (
-                    <h1 className="text-xl font-semibold text-white">{data.name}</h1>
+                    <h1 className="text-lg font-semibold text-white truncate text-center">{data.name}</h1>
                 )}
-                <div
-                    className='cursor-pointer p-1 active:bg-neutral-600 active:rounded lg:active:bg-neutral-600 lg:hover:bg-neutral-700 lg:hover:rounded'>
-                    <User size={24} />
-                </div>
             </header>
 
             <div
-                className='flex flex-col items-center mt-4 max-h-[calc(100%-10rem)] overflow-y-auto lg:gap-6'>
+                className='flex flex-col items-center mt-4 pb-20 max-h-[calc(100vh-8rem)] overflow-y-auto lg:gap-6'>
                 {isSuccess && data ? (
                     data?.workoutExercises
                         .sort((a, b) => {
@@ -70,18 +61,31 @@ export default function Page({ params }: { params: Promise<{ id: string }> }) {
                 )}
             </div>
 
-            {/* Start Workout Button - Moved to bottom */}
             {isSuccess && data && data.workoutExercises.length > 0 && (
-                <div className="fixed bottom-6 left-0 right-0 flex justify-center">
-                    <ActionButton
-                        onClick={handleStartWorkout}
-                        width="w-52"
-                        height="h-10"
-                        className="flex items-center justify-center gap-2"
-                    >
-                        <Play size={16} />
-                        Iniciar Treino
-                    </ActionButton>
+                <div className="fixed bottom-0 left-0 right-0 bg-zinc-800 shadow-[0_-2px_10px_rgba(0,0,0,0.2)] z-10">
+                    <div className="flex items-center justify-between px-4 py-3 relative">
+                        <button
+                            onClick={handleGoBack}
+                            className='flex items-center justify-center p-1.5 rounded-full hover:bg-zinc-700 active:bg-zinc-600 transition-colors bg-transparent border-0 z-10'
+                            aria-label="Voltar para a página inicial"
+                        >
+                            <ArrowLeft size={24} />
+                        </button>
+
+                        <div className="absolute left-0 right-0 flex justify-center items-center">
+                            <ActionButton
+                                onClick={handleStartWorkout}
+                                width="w-48"
+                                height="h-10"
+                                className="flex items-center justify-center gap-2"
+                            >
+                                <Play size={16} />
+                                Iniciar Treino
+                            </ActionButton>
+                        </div>
+
+                        <div className="w-[33px]"></div>
+                    </div>
                 </div>
             )}
         </main>
