@@ -63,26 +63,28 @@ export default function Page({ params }: { params: Promise<{ id: string }> }) {
 
             {isSuccess && data && data.workoutExercises.length > 0 && (
                 <div className="fixed bottom-0 left-0 right-0 bg-zinc-800 shadow-[0_-2px_10px_rgba(0,0,0,0.2)] z-10">
-                    <div className="flex items-center justify-between px-4 py-3">
+                    <div className="flex items-center justify-between px-4 py-3 relative">
                         <button
                             onClick={handleGoHome}
-                            className='flex items-center justify-center p-1.5 rounded-full hover:bg-zinc-700 active:bg-zinc-600 transition-colors bg-transparent border-0'
+                            className='flex items-center justify-center p-1.5 rounded-full hover:bg-zinc-700 active:bg-zinc-600 transition-colors bg-transparent border-0 z-10'
                             aria-label="Voltar para a página inicial"
                         >
                             <ArrowLeft size={24} />
                         </button>
 
-                        <ActionButton
-                            onClick={handleStartWorkout}
-                            width="w-48"
-                            height="h-10"
-                            className="flex items-center justify-center gap-2"
-                        >
-                            <Play size={16} />
-                            Iniciar Treino
-                        </ActionButton>
+                        <div className="absolute left-0 right-0 flex justify-center items-center">
+                            <ActionButton
+                                onClick={handleStartWorkout}
+                                width="w-48"
+                                height="h-10"
+                                className="flex items-center justify-center gap-2"
+                            >
+                                <Play size={16} />
+                                Iniciar Treino
+                            </ActionButton>
+                        </div>
 
-                        <div className="w-[28px]"></div>
+                        <div className="w-[33px]"></div>
                     </div>
                 </div>
             )}
