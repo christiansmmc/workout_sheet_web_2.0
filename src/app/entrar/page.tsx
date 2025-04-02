@@ -6,25 +6,10 @@ import { z } from 'zod';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { BeatLoader } from 'react-spinners';
-import { useRegisterMutation } from '@/api/user/queries';
+import { useLoginMutation } from '@/api/user/queries';
 
 // Validation Schema
-const registrationSchema = z.object({
-  name: z.string(),
-  height: z.string()
-    .optional()
-    .refine(val => {
-      if (!val) return true; // Allow empty
-      const numVal = Number(val.replace(',', '.'));
-      return !isNaN(numVal) && numVal > 0 && numVal < 300;
-    }, { message: 'Altura inválida (ex: 175 ou 1,75)' }),
-  weight: z.string()
-    .optional()
-    .refine(val => {
-      if (!val) return true; // Allow empty
-      const numVal = Number(val);
-      return !isNaN(numVal) && numVal > 0 && numVal < 300;
-    }, { message: 'Peso inválido' }),
+const loginSchema = z.object({
   email: z.string({ required_error: 'Email é obrigatório' })
     .email('Email inválido'),
   password: z.string({ required_error: 'Senha é obrigatória' })
@@ -32,22 +17,20 @@ const registrationSchema = z.object({
     .max(20, 'Senha não pode ter mais de 20 caracteres'),
 });
 
-type RegistrationFormData = z.infer<typeof registrationSchema>;
+type LoginFormData = z.infer<typeof loginSchema>;
 
 const FormInput = ({
   label,
   type = 'text',
   error,
   register,
-  placeholder,
-  hint
+  placeholder
 }: {
-  label: keyof RegistrationFormData;
+  label: keyof LoginFormData;
   type?: string;
   error?: { message?: string };
   register: any;
   placeholder: string;
-  hint?: string;
 }) => (
   <div className="w-full mb-4">
     <input
@@ -59,11 +42,6 @@ const FormInput = ({
       placeholder={placeholder}
       {...register(label)}
     />
-    {hint && (
-      <span className="text-sm text-zinc-400 ml-2 mt-1 block">
-        {hint}
-      </span>
-    )}
     {error && (
       <span className="text-sm text-red-500 ml-2 mt-1 block">
         {error.message}
@@ -72,30 +50,21 @@ const FormInput = ({
   </div>
 );
 
-export default function RegistrationPage() {
+export default function LoginPage() {
   const {
     register,
     handleSubmit,
     formState: { errors },
-  } = useForm<RegistrationFormData>({
-    resolver: zodResolver(registrationSchema),
+  } = useForm<LoginFormData>({
+    resolver: zodResolver(loginSchema),
   });
 
-  const { mutate, isLoading } = useRegisterMutation();
+  const { mutate, isLoading } = useLoginMutation();
 
-  const onSubmit = (data: RegistrationFormData) => {
+  const onSubmit = (data: LoginFormData) => {
     mutate({
-      firstName: data.name,
-      height: data.height
-        ? Number(data.height.replace(',', '.'))
-        : undefined,
-      weight: data.weight
-        ? Number(data.weight)
-        : undefined,
-      user: {
-        email: data.email,
-        password: data.password,
-      },
+      email: data.email,
+      password: data.password,
     });
   };
 
@@ -104,8 +73,8 @@ export default function RegistrationPage() {
       {/* Mobile & Tablet Image Section */}
       <div className="block lg:hidden w-full h-64 relative">
         <Image
-          src="/images/register-page-banner.webp"
-          alt="Fitness Registration"
+          src="/images/login-page-banner.webp"
+          alt="Fitness Login"
           fill
           className="absolute inset-0 object-cover blur-sm"
           priority
@@ -115,8 +84,8 @@ export default function RegistrationPage() {
       {/* Desktop Image Section */}
       <div className="hidden lg:block lg:w-1/2 relative">
         <Image
-          src="/images/register-page-banner.webp"
-          alt="Fitness Registration"
+          src="/images/login-page-banner.webp"
+          alt="Fitness Login"
           fill
           className="absolute inset-0 object-cover blur-sm"
           priority
@@ -128,36 +97,10 @@ export default function RegistrationPage() {
                       px-6 py-12 lg:px-16 xl:px-24">
         <div className="w-full max-w-md">
           <h1 className="text-3xl md:text-4xl font-bold text-center mb-8">
-            Crie sua conta
+            Acesse sua conta
           </h1>
 
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-            <FormInput
-              label="name"
-              placeholder="Nome"
-              register={register}
-              error={errors.name}
-            />
-            <div className="flex space-x-4">
-              <div className="w-1/2">
-                <FormInput
-                  label="height"
-                  placeholder="Altura (cm)"
-                  register={register}
-                  error={errors.height}
-                  hint="Opcional"
-                />
-              </div>
-              <div className="w-1/2">
-                <FormInput
-                  label="weight"
-                  placeholder="Peso (kg)"
-                  register={register}
-                  error={errors.weight}
-                  hint="Opcional"
-                />
-              </div>
-            </div>
             <FormInput
               label="email"
               placeholder="Email"
@@ -172,6 +115,12 @@ export default function RegistrationPage() {
               error={errors.password}
             />
 
+            <p className="text-end text-sm">
+              <span className="text-red-600 hover:underline cursor-pointer">
+                Esqueceu sua senha?
+              </span>
+            </p>
+
             <div className="mt-6">
               {!isLoading ? (
                 <button
@@ -181,7 +130,7 @@ export default function RegistrationPage() {
                              transition-colors duration-300
                              active:scale-95 transform"
                 >
-                  Criar conta
+                  Entrar
                 </button>
               ) : (
                 <div className="flex justify-center w-full">
@@ -190,12 +139,12 @@ export default function RegistrationPage() {
               )}
 
               <p className="text-center text-sm mt-4">
-                Já tem uma conta?{' '}
+                Ainda não tem uma conta?{' '}
                 <Link
-                  href="/login"
+                  href="/cadastro"
                   className="text-red-600 hover:underline font-semibold"
                 >
-                  Entrar
+                  Cadastre-se
                 </Link>
               </p>
             </div>

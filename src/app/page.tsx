@@ -72,7 +72,7 @@ export default function Home() {
           <div className={`space-y-3 sm:space-y-4 transition-all duration-500 ease-out 
                         ${isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}
             style={{ transitionDelay: '550ms' }}>
-            <Link href="/login" className="block">
+            <Link href="/entrar" className="block">
               <button
                 className="w-full bg-red-600 text-white 
                            py-2.5 sm:py-3 rounded-lg hover:bg-red-700 
@@ -83,7 +83,7 @@ export default function Home() {
               </button>
             </Link>
 
-            <Link href="/register" className="block">
+            <Link href="/cadastro" className="block">
               <button
                 className="w-full bg-zinc-800 text-white 
                            py-2.5 sm:py-3 rounded-lg hover:bg-zinc-700 

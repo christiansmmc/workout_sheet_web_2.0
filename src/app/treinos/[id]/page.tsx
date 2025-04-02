@@ -16,16 +16,16 @@ export default function Page({ params }: { params: Promise<{ id: string }> }) {
 
     useEffect(() => {
         if (isError) {
-            router.push('/workout');
+            router.push('/treinos');
         }
     }, [isError, router]);
 
     const handleGoBack = () => {
-        router.push("/workout");
+        router.push("/treinos");
     };
 
     const handleStartWorkout = () => {
-        router.push(`/workout/${unwrappedParams.id}/start-workout`);
+        router.push(`/treinos/${unwrappedParams.id}/iniciar`);
     };
 
     return (

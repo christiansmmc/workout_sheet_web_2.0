@@ -90,7 +90,7 @@ export default function Page() {
   }, [currentStep]);
 
   const handleGoBack = () => {
-    router.push('/workout');
+    router.push('/treinos');
   };
 
   const handleSetWorkoutSetsReps = useCallback((selectedType: workoutSetRepType) => {
@@ -133,7 +133,7 @@ export default function Page() {
   }, []);
 
   const handleSuccessDialogClose = useCallback(() => {
-    router.push('/workout');
+    router.push('/treinos');
   }, [router]);
 
   // Adicionando um useEffect para controlar o redirecionamento após o modal ser exibido

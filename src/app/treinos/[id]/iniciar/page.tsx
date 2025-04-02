@@ -124,7 +124,7 @@ export default function StartWorkoutPage({ params }: { params: Promise<{ id: str
     };
 
     const confirmCancel = () => {
-        router.push(`/workout/${workoutId}`);
+        router.push(`/treinos/${workoutId}`);
     };
 
     const handleExerciseStatus = (exerciseId: string, status: ExerciseStatus) => {
@@ -225,7 +225,7 @@ export default function StartWorkoutPage({ params }: { params: Promise<{ id: str
                 },
                 onError: (error) => {
                     console.error('Erro ao salvar treino:', error);
-                    router.push("/workout");
+                    router.push("/treinos");
                     setIsSubmitting(false);
                 }
             });
@@ -242,7 +242,7 @@ export default function StartWorkoutPage({ params }: { params: Promise<{ id: str
 
     // Return to workouts list
     const returnToWorkouts = () => {
-        router.push("/workout");
+        router.push("/treinos");
     };
 
     return (
@@ -617,7 +617,7 @@ export default function StartWorkoutPage({ params }: { params: Promise<{ id: str
             {/* Workout Summary Modal/Screen */}
             <Dialog open={showWorkoutSummary}
                 onOpenChange={(open) => {
-                    if (!open) router.push("/workout");
+                    if (!open) router.push("/treinos");
                     setShowWorkoutSummary(open);
                 }}>
                 <DialogOverlay className="fixed inset-0 bg-black bg-opacity-70 backdrop-blur-sm" />

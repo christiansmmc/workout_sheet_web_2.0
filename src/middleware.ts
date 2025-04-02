@@ -4,7 +4,7 @@ import { isTokenValid } from "@/utils/authUtils";
 export default function middleware(request: NextRequest) {
   const tokenCookie = request.cookies.get("access_token");
   const token = tokenCookie?.value;
-  const noAuthPaths = ["/", "/login", "/register"];
+  const noAuthPaths = ["/", "/entrar", "/cadastro"];
 
   // Verifica se o token é válido (existe e não está expirado)
   const isValidToken = isTokenValid(token);
@@ -24,11 +24,11 @@ export default function middleware(request: NextRequest) {
   // Se tem token válido e está tentando acessar uma rota pública
   if (
     request.nextUrl.pathname === "/" ||
-    request.nextUrl.pathname === "/login" ||
-    request.nextUrl.pathname === "/register"
+    request.nextUrl.pathname === "/entrar" ||
+    request.nextUrl.pathname === "/cadastro"
   ) {
     // Redireciona para a página principal de treinos
-    const workoutUrl = new URL("/workout", request.url);
+    const workoutUrl = new URL("/treinos", request.url);
     return NextResponse.redirect(workoutUrl);
   }
 
@@ -37,5 +37,5 @@ export default function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/", "/login", "/register", "/workout"],
+  matcher: ["/", "/entrar", "/cadastro", "/treinos"],
 };

@@ -146,11 +146,11 @@ export default function Page() {
   };
 
   const handleEnterWorkout = (id: string) => {
-    router.push(`/workout/${id}`);
+    router.push(`/treinos/${id}`);
   };
 
   const handleEnterCreateWorkout = () => {
-    router.push(`/create-workout`);
+    router.push(`/treinos/criar`);
   };
 
   return (

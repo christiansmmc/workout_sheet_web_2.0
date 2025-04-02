@@ -50,7 +50,7 @@ const errorMessages = {
 const redirectToLogin = () => {
   // Em client components, podemos substituir por useRouter().push('/login')
   // Mas aqui usamos location pois funciona em contextos sem o hook do Next.js
-  window.location.href = "/login";
+  window.location.href = "/entrar";
 };
 
 export const handleQueryError = (error: unknown, context: ErrorContext = 'default', redirectOnAuth = true) => {
