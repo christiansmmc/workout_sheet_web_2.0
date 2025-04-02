@@ -47,3 +47,29 @@ export interface WorkoutRecordRequest {
         }[] | null;
     }[];
 }
+
+export interface WorkoutRecord {
+    id: number;
+    date: string;
+    workout: {
+        id: number;
+        name: string;
+    };
+    workoutRecordExercises: {
+        id: number;
+        note: string;
+        status: string;
+        exercise: {
+            id: number;
+            name: string;
+            bodyPart: string;
+        };
+        workoutRecordExerciseSets: {
+            id: number;
+            set: number;
+            reps: number;
+            exerciseLoad: number;
+            note: string;
+        }[];
+    }[];
+}

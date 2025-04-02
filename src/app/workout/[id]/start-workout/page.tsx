@@ -1,13 +1,15 @@
 "use client";
 
 import React, { useState } from 'react';
-import { ArrowLeft, User, CheckCircle, ChevronDown, ChevronUp, RotateCcw, AlertCircle, Ban } from 'lucide-react';
+import { ArrowLeft, User, CheckCircle, ChevronDown, ChevronUp, RotateCcw, AlertCircle, Ban, TrendingUp, TrendingDown, ArrowRight } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { BeatLoader } from 'react-spinners';
 import { capitalizeAllWords } from '@/utils/stringUtils';
 import { useGetExercisesFromWorkoutQuery } from '@/api/workout/queries';
-import { useCreateWorkoutRecord } from '@/api/workout-record/queries';
+import { useCreateWorkoutRecord, useGetLastWorkoutRecord } from '@/api/workout-record/queries';
+import { WorkoutRecord } from '@/api/interfaces/workout';
 import ActionButton from '@/components/button/actionButton';
+import WorkoutComparisonSummary from '@/components/card/workoutComparisonSummary';
 import {
     Dialog,
     DialogContent,
@@ -46,6 +48,9 @@ export default function StartWorkoutPage({ params }: { params: Promise<{ id: str
     // Fetch workout exercises data
     const { isSuccess, data } = useGetExercisesFromWorkoutQuery(workoutId);
 
+    // Query to get the last workout record for comparison
+    const { data: lastWorkoutRecord } = useGetLastWorkoutRecord(Number(workoutId));
+
     // Mutation for creating workout record
     const createWorkoutRecord = useCreateWorkoutRecord();
 
@@ -55,6 +60,11 @@ export default function StartWorkoutPage({ params }: { params: Promise<{ id: str
     const [cancelModalOpen, setCancelModalOpen] = useState(false);
     const [pendingExercises, setPendingExercises] = useState<string[]>([]);
     const [isSubmitting, setIsSubmitting] = useState(false);
+
+    // New states for workout completion modals
+    const [workoutCompleteModalOpen, setWorkoutCompleteModalOpen] = useState(false);
+    const [showWorkoutSummary, setShowWorkoutSummary] = useState(false);
+    const [newWorkoutRecord, setNewWorkoutRecord] = useState<any>(null);
 
     // Initialize tracking state when data is loaded
     React.useEffect(() => {
@@ -196,14 +206,43 @@ export default function StartWorkoutPage({ params }: { params: Promise<{ id: str
                 }) || []
             };
 
+            // Mostrar logs de debug
+            console.log('Payload do treino:', payload);
+            console.log('Last workout record before mutation:', lastWorkoutRecord);
+
             createWorkoutRecord.mutate(payload, {
-                onSuccess: () => router.push("/workout"),
-                onError: () => router.push("/workout"),
-                onSettled: () => setIsSubmitting(false)
+                onSuccess: (response) => {
+                    // Mostrar detalhes do novo treino
+                    console.log('Treino salvo com sucesso:', response);
+
+                    // Agora a API já retorna o objeto completo, então podemos usar diretamente
+                    const workoutRecordData = response.data;
+                    console.log('Dados do novo treino:', workoutRecordData);
+
+                    setNewWorkoutRecord(workoutRecordData);
+                    setWorkoutCompleteModalOpen(true);
+                    setIsSubmitting(false);
+                },
+                onError: (error) => {
+                    console.error('Erro ao salvar treino:', error);
+                    router.push("/workout");
+                    setIsSubmitting(false);
+                }
             });
         } else {
             setAlertModalOpen(true);
         }
+    };
+
+    // Handle workout summary view
+    const handleViewSummary = () => {
+        setWorkoutCompleteModalOpen(false);
+        setShowWorkoutSummary(true);
+    };
+
+    // Return to workouts list
+    const returnToWorkouts = () => {
+        router.push("/workout");
     };
 
     return (
@@ -530,6 +569,84 @@ export default function StartWorkoutPage({ params }: { params: Promise<{ id: str
                 </DialogContent>
             </Dialog>
 
+            {/* Workout Complete Modal */}
+            <Dialog open={workoutCompleteModalOpen} onOpenChange={setWorkoutCompleteModalOpen}>
+                <DialogOverlay className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm" />
+                <DialogContent
+                    className="w-[95%] rounded-lg sm:max-w-[425px] bg-zinc-900 border-0 shadow-lg"
+                    onPointerDownOutside={(e) => e.preventDefault()}
+                >
+                    <DialogHeader className="flex flex-col items-center">
+                        <div className="flex justify-center items-center rounded-full bg-green-500/10 w-16 h-16 mb-4">
+                            <CheckCircle size={32} className="text-green-500" />
+                        </div>
+                        <DialogTitle className="text-xl font-bold mb-4">Treino salvo com sucesso!</DialogTitle>
+
+                        {lastWorkoutRecord ? (
+                            <div className="text-center text-zinc-300 mb-2">
+                                <p>Seu treino foi registrado. Você pode ver um resumo comparativo com seu último treino ou voltar à lista de treinos.</p>
+                            </div>
+                        ) : (
+                            <div className="text-center text-zinc-300 mb-2">
+                                <p>Parabéns pelo seu primeiro treino! Continue acompanhando seu progresso.</p>
+                            </div>
+                        )}
+                    </DialogHeader>
+
+                    <div className="flex flex-col gap-3 pb-2 px-4 mt-6">
+                        <button
+                            onClick={returnToWorkouts}
+                            className="w-full bg-zinc-700 py-2.5 rounded-lg font-medium hover:bg-zinc-600 transition-colors duration-300"
+                        >
+                            Voltar aos treinos
+                        </button>
+
+                        {lastWorkoutRecord && (
+                            <button
+                                onClick={handleViewSummary}
+                                className="w-full bg-red-600 py-2.5 rounded-lg font-medium hover:bg-red-700 transition-colors duration-300 flex items-center justify-center gap-2"
+                            >
+                                <span>Ver resumo pós-treino</span>
+                                <ArrowRight size={18} />
+                            </button>
+                        )}
+                    </div>
+                </DialogContent>
+            </Dialog>
+
+            {/* Workout Summary Modal/Screen */}
+            <Dialog open={showWorkoutSummary}
+                onOpenChange={(open) => {
+                    if (!open) router.push("/workout");
+                    setShowWorkoutSummary(open);
+                }}>
+                <DialogOverlay className="fixed inset-0 bg-black bg-opacity-70 backdrop-blur-sm" />
+                <DialogContent
+                    className="w-[95%] max-h-[90vh] overflow-y-auto rounded-lg sm:max-w-[600px] bg-zinc-900 border-0 shadow-lg"
+                >
+                    <DialogHeader className="px-4 pt-6 pb-2">
+                        <DialogTitle className="text-xl font-bold mb-2">Resumo Comparativo</DialogTitle>
+                        <p className="text-zinc-400 text-sm">
+                            Comparação entre o treino atual e o anterior realizado em {' '}
+                            {new Date(lastWorkoutRecord?.date || '').toLocaleDateString('pt-BR')}
+                        </p>
+                    </DialogHeader>
+
+                    <div className="px-4 py-4 overflow-y-auto">
+                        {renderWorkoutSummary(lastWorkoutRecord, newWorkoutRecord)}
+                    </div>
+
+                    <div className="px-4 py-4 border-t border-zinc-800">
+                        <button
+                            onClick={returnToWorkouts}
+                            className="w-full bg-red-600 py-3 rounded-lg font-medium hover:bg-red-700 transition-colors duration-300"
+                        >
+                            Fechar e voltar aos treinos
+                        </button>
+                    </div>
+                </DialogContent>
+            </Dialog>
+
             {/* Fixed footer with progress and action buttons */}
             <div className="fixed bottom-0 left-0 right-0 bg-zinc-800 shadow-[0_-2px_10px_rgba(0,0,0,0.2)] z-10">
                 {/* Barra de progresso */}
@@ -572,4 +689,41 @@ export default function StartWorkoutPage({ params }: { params: Promise<{ id: str
             </div>
         </main>
     );
-} 
+}
+
+// Função para renderizar o resumo do treino com manipulação de diferentes cenários
+const renderWorkoutSummary = (lastWorkout: WorkoutRecord | null | undefined, currentWorkout: any) => {
+    // Caso não exista um treino anterior registrado
+    if (!lastWorkout) {
+        return (
+            <div className="bg-zinc-800/50 rounded-lg p-6 flex flex-col items-center justify-center">
+                <div className="mb-4 p-4 rounded-full bg-green-500/10">
+                    <CheckCircle size={32} className="text-green-500" />
+                </div>
+                <h3 className="text-lg font-medium mb-2">Primeiro treino registrado!</h3>
+                <p className="text-zinc-400 text-sm text-center">
+                    Este é seu primeiro registro deste treino. Nas próximas vezes,
+                    você verá uma comparação com os treinos anteriores.
+                </p>
+            </div>
+        );
+    }
+
+    // Caso o treino atual não tenha sido gerado corretamente
+    if (!currentWorkout || typeof currentWorkout === 'string' || currentWorkout === '') {
+        return (
+            <div className="bg-zinc-800/50 rounded-lg p-6 flex flex-col items-center justify-center">
+                <div className="mb-4 p-4 rounded-full bg-zinc-700/50">
+                    <AlertCircle size={32} className="text-amber-500" />
+                </div>
+                <h3 className="text-lg font-medium mb-2">Dados insuficientes</h3>
+                <p className="text-zinc-400 text-sm text-center">
+                    Não foi possível carregar os dados completos do treino atual para comparação.
+                </p>
+            </div>
+        );
+    }
+
+    // Usar o componente separado para comparação
+    return <WorkoutComparisonSummary lastWorkout={lastWorkout} currentWorkout={currentWorkout} />;
+}; 
