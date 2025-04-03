@@ -47,6 +47,13 @@ const ExerciseCard = ({ workoutExercise, workoutId }: ExerciseCardProps) => {
   const [editReps, setEditReps] = useState(workoutExercise.reps || 0);
   const [editLoad, setEditLoad] = useState(workoutExercise.exerciseLoad);
 
+  // Função auxiliar para tratar entrada de números decimais (com vírgula ou ponto)
+  const parseDecimalInput = (value: string): number => {
+    // Substitui vírgula por ponto e converte para número
+    const normalizedValue = value.replace(',', '.');
+    return parseFloat(normalizedValue);
+  };
+
   const { mutate: deleteWorkoutExerciseMutate } = useDeleteExerciseFromWorkoutMutation();
   const { mutate: patchWorkoutExerciseMutate } = usePatchWorkoutExerciseMutation();
 
@@ -146,7 +153,8 @@ const ExerciseCard = ({ workoutExercise, workoutId }: ExerciseCardProps) => {
                       <input
                         type="number"
                         placeholder={editLoad.toString()}
-                        onChange={(e) => setEditLoad(Number(e.target.value))}
+                        onChange={(e) => setEditLoad(parseDecimalInput(e.target.value))}
+                        step="0.01"
                         className="w-16 rounded-lg bg-zinc-800 text-center h-10 outline-0 focus:ring-2 focus:ring-red-500 transition-all duration-300"
                       />
                     </div>
@@ -191,7 +199,7 @@ const ExerciseCard = ({ workoutExercise, workoutId }: ExerciseCardProps) => {
                 type="number"
                 step="0.01"
                 maxLength={9}
-                onChange={(e) => setExerciseLoad(Number(e.target.value))}
+                onChange={(e) => setExerciseLoad(parseDecimalInput(e.target.value))}
                 onBlur={updateExerciseLoad}
                 className="w-20 h-9 text-center bg-zinc-900 rounded-lg placeholder:text-white focus:outline-none focus:ring-2 focus:ring-red-500 transition-all duration-300"
               />
