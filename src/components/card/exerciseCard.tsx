@@ -4,15 +4,11 @@ import { useDeleteExerciseFromWorkoutMutation, usePatchWorkoutExerciseMutation }
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
-  DialogFooter,
   DialogHeader,
-  DialogOverlay,
   DialogTitle,
-  DialogTrigger,
+  DialogOverlay,
 } from '@/components/ui/dialog';
-import { Ellipsis, Trash2 } from 'lucide-react';
-import ActionButton from '@/components/button/actionButton';
+import { Ellipsis, Trash2, AlertCircle, Dumbbell, Repeat } from 'lucide-react';
 
 interface ExerciseCardProps {
   workoutExercise: {
@@ -98,102 +94,39 @@ const ExerciseCard = ({ workoutExercise, workoutId }: ExerciseCardProps) => {
 
   return (
     <>
-      <div className="flex flex-col flex-shrink-0 bg-zinc-800 rounded-lg w-[95%] max-w-2xl mx-auto mb-3 shadow-lg transition-all duration-300 hover:shadow-xl">
-        <div className="flex justify-between items-center h-12 mt-2 pb-2 border-b border-zinc-600">
-          <div className="ml-3 lg:ml-5 font-medium text-sm md:text-base lg:text-lg">
-            <p>{capitalizeAllWords(workoutExercise.exercise.name)}</p>
-          </div>
-          <div className="flex items-center gap-2 md:gap-5 mr-2 md:mr-5">
-            <div
-              className={`${bodyPartColor} flex justify-center items-center h-7 w-16 md:h-8 md:w-20 lg:w-24 rounded-lg text-xs md:text-sm font-medium`}
-            >
+      <div className="relative overflow-hidden rounded-xl bg-zinc-800/50 backdrop-blur-sm border border-zinc-700/50 transition-all duration-300">
+        {/* Header: Exercise name and edit button */}
+        <div className="flex items-center justify-between p-3 border-b border-zinc-700/50">
+          <h3 className="text-base font-medium text-white truncate">
+            {capitalizeAllWords(workoutExercise.exercise.name)}
+          </h3>
+          <button
+            onClick={() => setEditDialogOpen(true)}
+            className="p-1.5 rounded-lg text-zinc-400 hover:text-zinc-300 hover:bg-zinc-700/50 transition-colors"
+          >
+            <Ellipsis size={18} />
+          </button>
+        </div>
+
+        {/* Content: Exercise details */}
+        <div className="p-3">
+          <div className="flex flex-wrap items-center gap-2">
+            {/* Body part tag */}
+            <div className={`${bodyPartColor} px-2.5 h-7 flex items-center rounded-lg text-xs font-medium`}>
               {workoutExercise.exercise.bodyPart}
             </div>
-            <div className="flex items-center">
-              <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
-                <DialogTrigger asChild>
-                  <div className="cursor-pointer p-1 active:bg-neutral-600 active:rounded hover:bg-neutral-700 hover:rounded transition-colors duration-200">
-                    <Ellipsis size={24} className="md:w-6 md:h-6 lg:w-7 lg:h-7" />
-                  </div>
-                </DialogTrigger>
-                <DialogOverlay className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm" />
-                <DialogContent
-                  onOpenAutoFocus={(e) => e.preventDefault()}
-                  className="w-[95%] rounded-lg sm:max-w-[425px] bg-zinc-900 border-0 shadow-lg"
-                >
-                  <DialogHeader className="flex justify-center items-center">
-                    <DialogTitle className="text-2xl font-bold mb-2">Editar exercício</DialogTitle>
-                    <DialogDescription className="text-base text-zinc-400">
-                      {capitalizeAllWords(workoutExercise.exercise.name)}
-                    </DialogDescription>
-                  </DialogHeader>
-                  <div className="flex flex-col items-center gap-5 py-4">
-                    <div className="flex justify-between items-center w-[90%] border-b border-zinc-700 pb-3">
-                      <div className="w-1/2 text-left text-base">Séries:</div>
-                      <input
-                        type="number"
-                        placeholder={editSets.toString()}
-                        onChange={(e) => setEditSets(Number(e.target.value))}
-                        maxLength={2}
-                        className="w-16 rounded-lg bg-zinc-800 text-center h-10 outline-0 focus:ring-2 focus:ring-red-500 transition-all duration-300"
-                      />
-                    </div>
-                    <div className="flex justify-between items-center w-[90%] border-b border-zinc-700 pb-3">
-                      <div className="w-1/2 text-left text-base">Repetições:</div>
-                      <input
-                        type="number"
-                        placeholder={editReps.toString()}
-                        onChange={(e) => setEditReps(Number(e.target.value))}
-                        maxLength={2}
-                        className="w-16 rounded-lg bg-zinc-800 text-center h-10 outline-0 focus:ring-2 focus:ring-red-500 transition-all duration-300"
-                      />
-                    </div>
-                    <div className="flex justify-between items-center w-[90%] border-b border-zinc-700 pb-3">
-                      <div className="w-1/2 text-left text-base">Carga:</div>
-                      <input
-                        type="number"
-                        placeholder={editLoad.toString()}
-                        onChange={(e) => setEditLoad(parseDecimalInput(e.target.value))}
-                        step="0.01"
-                        className="w-16 rounded-lg bg-zinc-800 text-center h-10 outline-0 focus:ring-2 focus:ring-red-500 transition-all duration-300"
-                      />
-                    </div>
-                  </div>
-                  <div className="flex flex-col space-y-3 w-[90%] mx-auto mt-2 mb-4">
-                    <ActionButton height="h-11" width="w-full" onClick={updateExercise}>
-                      Salvar alterações
-                    </ActionButton>
 
-                    <div className="flex justify-between">
-                      <button
-                        onClick={() => setDeleteDialogOpen(true)}
-                        className="flex items-center justify-center gap-1 text-red-500 hover:text-red-400 transition-colors duration-200"
-                      >
-                        <Trash2 size={16} />
-                        <span>Excluir exercício</span>
-                      </button>
+            {/* Series and Reps */}
+            <div className="flex items-center gap-1.5 px-2.5 h-7 rounded-lg bg-zinc-700/50">
+              <Repeat size={14} className="text-zinc-400" />
+              <span className="text-sm font-medium text-white">
+                {workoutExercise.sets || 0}x{workoutExercise.reps || 0}
+              </span>
+            </div>
 
-                      <button
-                        onClick={() => setEditDialogOpen(false)}
-                        className="text-zinc-400 hover:text-zinc-300 transition-colors duration-200"
-                      >
-                        Cancelar
-                      </button>
-                    </div>
-                  </div>
-                </DialogContent>
-              </Dialog>
-            </div>
-          </div>
-        </div>
-        <div className="flex justify-between items-center py-3 px-4">
-          <div className="flex flex-row justify-between w-full flex-wrap gap-y-2">
-            <div className="flex items-center">
-              <span className="text-sm text-zinc-400 mr-2">Séries x Repetições:</span>
-              <span className="font-medium">{workoutExercise.sets || 0}x{workoutExercise.reps || 0}</span>
-            </div>
-            <div className="flex items-center">
-              <div className="text-sm text-zinc-400 mr-2">Carga:</div>
+            {/* Load */}
+            <div className="flex items-center gap-1.5 px-2.5 h-7 rounded-lg bg-zinc-700/50">
+              <Dumbbell size={14} className="text-zinc-400" />
               <input
                 placeholder={exerciseLoad.toString()}
                 type="number"
@@ -201,41 +134,191 @@ const ExerciseCard = ({ workoutExercise, workoutId }: ExerciseCardProps) => {
                 maxLength={9}
                 onChange={(e) => setExerciseLoad(parseDecimalInput(e.target.value))}
                 onBlur={updateExerciseLoad}
-                className="w-20 h-9 text-center bg-zinc-900 rounded-lg placeholder:text-white focus:outline-none focus:ring-2 focus:ring-red-500 transition-all duration-300"
+                className="w-16 h-7 text-center bg-transparent text-sm font-medium text-white placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-red-500 transition-all duration-300"
               />
             </div>
           </div>
         </div>
       </div>
 
+      {/* Edit Dialog */}
+      <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
+        <DialogOverlay className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm" />
+        <DialogContent
+          className="w-[95%] rounded-lg sm:max-w-[425px] bg-zinc-900 border-0 shadow-lg"
+        >
+          <DialogHeader className="flex flex-col items-center">
+            <DialogTitle className="text-xl font-bold mb-4">Editar exercício</DialogTitle>
+            <div className="text-center text-zinc-300 mb-2">
+              {capitalizeAllWords(workoutExercise.exercise.name)}
+            </div>
+          </DialogHeader>
+
+          <div className="space-y-4 px-4">
+            {/* Series and Reps in a single row */}
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <div className="flex items-center gap-2">
+                  <label className="text-sm text-zinc-400">Séries</label>
+                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-zinc-500">
+                    <path d="M12 2v20M2 12h20" />
+                  </svg>
+                </div>
+                <div className="relative flex items-center">
+                  <button
+                    onClick={() => setEditSets(prev => Math.max(0, prev - 1))}
+                    className="absolute left-2 p-1 rounded hover:bg-zinc-700/50 transition-colors"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-zinc-400">
+                      <path d="M5 12h14"></path>
+                    </svg>
+                  </button>
+                  <input
+                    type="number"
+                    placeholder={editSets.toString()}
+                    value={editSets}
+                    onChange={(e) => setEditSets(Number(e.target.value))}
+                    maxLength={2}
+                    className="w-full h-10 rounded-lg bg-zinc-800 text-center pl-9 pr-9 focus:outline-none focus:ring-2 focus:ring-red-500 transition-all duration-300"
+                  />
+                  <button
+                    onClick={() => setEditSets(prev => prev + 1)}
+                    className="absolute right-2 p-1 rounded hover:bg-zinc-700/50 transition-colors"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-zinc-400">
+                      <path d="M12 5v14M5 12h14"></path>
+                    </svg>
+                  </button>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <div className="flex items-center gap-2">
+                  <label className="text-sm text-zinc-400">Repetições</label>
+                  <Repeat size={14} className="text-zinc-500" />
+                </div>
+                <div className="relative flex items-center">
+                  <button
+                    onClick={() => setEditReps(prev => Math.max(0, prev - 1))}
+                    className="absolute left-2 p-1 rounded hover:bg-zinc-700/50 transition-colors"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-zinc-400">
+                      <path d="M5 12h14"></path>
+                    </svg>
+                  </button>
+                  <input
+                    type="number"
+                    placeholder={editReps.toString()}
+                    value={editReps}
+                    onChange={(e) => setEditReps(Number(e.target.value))}
+                    maxLength={2}
+                    className="w-full h-10 rounded-lg bg-zinc-800 text-center pl-9 pr-9 focus:outline-none focus:ring-2 focus:ring-red-500 transition-all duration-300"
+                  />
+                  <button
+                    onClick={() => setEditReps(prev => prev + 1)}
+                    className="absolute right-2 p-1 rounded hover:bg-zinc-700/50 transition-colors"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-zinc-400">
+                      <path d="M12 5v14M5 12h14"></path>
+                    </svg>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* Load input with icon */}
+            <div className="space-y-2">
+              <div className="flex items-center gap-2">
+                <label className="text-sm text-zinc-400">Carga (kg)</label>
+                <Dumbbell size={14} className="text-zinc-500" />
+              </div>
+              <div className="relative flex items-center">
+                <button
+                  onClick={() => setEditLoad(prev => Math.max(0, prev - 0.5))}
+                  className="absolute left-2 p-1 rounded hover:bg-zinc-700/50 transition-colors"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-zinc-400">
+                    <path d="M5 12h14"></path>
+                  </svg>
+                </button>
+                <input
+                  type="number"
+                  placeholder={editLoad.toString()}
+                  value={editLoad}
+                  onChange={(e) => setEditLoad(parseDecimalInput(e.target.value))}
+                  step="0.01"
+                  className="w-full h-10 rounded-lg bg-zinc-800 text-center pl-9 pr-9 focus:outline-none focus:ring-2 focus:ring-red-500 transition-all duration-300"
+                />
+                <button
+                  onClick={() => setEditLoad(prev => prev + 0.5)}
+                  className="absolute right-2 p-1 rounded hover:bg-zinc-700/50 transition-colors"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-zinc-400">
+                    <path d="M12 5v14M5 12h14"></path>
+                  </svg>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div className="flex flex-col gap-3 px-4 py-4">
+            <button
+              onClick={updateExercise}
+              className="w-full py-3 rounded-xl bg-red-500 hover:bg-red-600 transition-colors"
+            >
+              <span className="font-medium">Salvar alterações</span>
+            </button>
+
+            <div className="flex items-center justify-between">
+              <button
+                onClick={() => setDeleteDialogOpen(true)}
+                className="flex items-center gap-1.5 text-red-500 hover:text-red-400 transition-colors"
+              >
+                <Trash2 size={16} />
+                <span className="text-sm">Remover exercício</span>
+              </button>
+
+              <button
+                onClick={() => setEditDialogOpen(false)}
+                className="text-sm text-zinc-400 hover:text-zinc-300 transition-colors"
+              >
+                Cancelar
+              </button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Dialog */}
       <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <DialogOverlay className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm" />
         <DialogContent
           className="w-[95%] rounded-lg sm:max-w-[425px] bg-zinc-900 border-0 shadow-lg"
-          aria-describedby="delete-exercise-description"
         >
-          <DialogHeader className="flex justify-center items-center">
-            <DialogTitle className="text-xl font-bold">Excluir exercício</DialogTitle>
-          </DialogHeader>
-          <div className="flex flex-col p-4">
-            <p className="text-center" id="delete-exercise-description">
+          <DialogHeader className="flex flex-col items-center">
+            <div className="flex justify-center items-center rounded-full bg-red-500/10 w-16 h-16 mb-4">
+              <AlertCircle size={32} className="text-red-500" />
+            </div>
+            <DialogTitle className="text-xl font-bold mb-4">Excluir exercício</DialogTitle>
+            <div className="text-center text-zinc-300 mb-2">
               Tem certeza que deseja excluir este exercício?
-            </p>
-          </div>
-          <DialogFooter className="flex flex-row justify-center gap-3 pb-4">
+            </div>
+          </DialogHeader>
+
+          <div className="flex justify-between gap-4 pb-2 px-4 mt-6">
             <button
-              className="bg-zinc-700 w-28 h-11 rounded-lg font-medium hover:bg-zinc-600 transition-colors duration-300"
               onClick={() => setDeleteDialogOpen(false)}
+              className="flex-1 bg-zinc-700 py-2.5 rounded-lg font-medium hover:bg-zinc-600 transition-colors duration-300"
             >
               Cancelar
             </button>
             <button
-              className="bg-red-600 w-28 h-11 rounded-lg font-medium hover:bg-red-700 transition-colors duration-300"
               onClick={handleDeleteWorkoutExercise}
+              className="flex-1 bg-red-600 py-2.5 rounded-lg font-medium hover:bg-red-700 transition-colors duration-300"
             >
               Excluir
             </button>
-          </DialogFooter>
+          </div>
         </DialogContent>
       </Dialog>
     </>

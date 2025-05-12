@@ -4,12 +4,12 @@ import { useState, useCallback, useEffect } from 'react';
 import { CreateWorkoutRequest } from '@/api/interfaces/workout';
 import { useGetExercisesQuery } from '@/api/exercise/queries';
 import { useCreateWorkoutMutation } from '@/api/workout/queries';
-import { ArrowLeft, Check } from 'lucide-react';
+import { ArrowLeft, Check, Dumbbell, Repeat, Search, X } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { capitalize } from '@/utils/stringUtils';
 import ActionButton from '@/components/button/actionButton';
 import { MoonLoader } from 'react-spinners';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogOverlay } from '@/components/ui/dialog';
 import { cn } from '@/lib/utils';
 
 const bodyParts = ['PEITO', 'BICEPS', 'COSTAS', 'TRICEPS', 'OMBRO', 'PERNA'];
@@ -143,9 +143,9 @@ export default function Page() {
   }, [successDialogOpen]);
 
   return (
-    <main className="app-container">
+    <main className="min-h-screen bg-[#161619] flex flex-col">
       {/* Header */}
-      <header className="flex items-center justify-between px-4 sm:px-6 lg:px-10 bg-zinc-800 h-16 shadow-lg">
+      <header className="flex items-center justify-between px-4 sm:px-6 lg:px-10 bg-zinc-800/50 h-16 shadow-lg">
         <button
           onClick={handlePreviousStep}
           disabled={currentStep === 1}
@@ -173,7 +173,7 @@ export default function Page() {
       </header>
 
       {/* Progress Bar */}
-      <div className="w-full bg-zinc-800 h-1.5">
+      <div className="w-full bg-zinc-800/50 h-1">
         <div
           className="bg-red-600 h-full transition-all duration-300 ease-in-out"
           style={{ width: `${currentStep * 25}%` }}
@@ -199,7 +199,7 @@ export default function Page() {
                       "flex justify-center items-center w-[calc(50%-0.5rem)] sm:w-36 h-14 text-lg rounded-lg border transition-colors duration-200 cursor-pointer",
                       isSelected
                         ? "bg-red-600 border-red-600 shadow-md"
-                        : "bg-zinc-800 border-zinc-700 hover:bg-zinc-700"
+                        : "bg-zinc-800/50 border-zinc-700 hover:bg-zinc-700"
                     )}
                   >
                     {capitalize(bodyPart)}
@@ -227,7 +227,7 @@ export default function Page() {
                     "flex justify-center items-center w-[calc(33%-0.5rem)] h-14 text-lg rounded-lg border transition-colors duration-200 cursor-pointer",
                     workoutSetsReps === workoutSetRepType.THREE_FIFTEEN
                       ? "bg-red-600 border-red-600 shadow-md"
-                      : "bg-zinc-800 border-zinc-700 hover:bg-zinc-700"
+                      : "bg-zinc-800/50 border-zinc-700 hover:bg-zinc-700"
                   )}
                 >
                   3x15
@@ -238,7 +238,7 @@ export default function Page() {
                     "flex justify-center items-center w-[calc(33%-0.5rem)] h-14 text-lg rounded-lg border transition-colors duration-200 cursor-pointer",
                     workoutSetsReps === workoutSetRepType.FOUR_TWELVE
                       ? "bg-red-600 border-red-600 shadow-md"
-                      : "bg-zinc-800 border-zinc-700 hover:bg-zinc-700"
+                      : "bg-zinc-800/50 border-zinc-700 hover:bg-zinc-700"
                   )}
                 >
                   4x12
@@ -249,7 +249,7 @@ export default function Page() {
                     "flex justify-center items-center w-[calc(33%-0.5rem)] h-14 text-lg rounded-lg border transition-colors duration-200 cursor-pointer",
                     workoutSetsReps === workoutSetRepType.OTHER
                       ? "bg-red-600 border-red-600 shadow-md"
-                      : "bg-zinc-800 border-zinc-700 hover:bg-zinc-700"
+                      : "bg-zinc-800/50 border-zinc-700 hover:bg-zinc-700"
                   )}
                 >
                   Outro
@@ -259,22 +259,56 @@ export default function Page() {
               {workoutSetsReps === workoutSetRepType.OTHER && (
                 <div className="w-full mt-6 flex flex-col gap-6 max-w-md mx-auto">
                   <div className="flex items-center justify-between w-full border-b border-zinc-700 pb-3">
-                    <label className="text-lg text-zinc-300">Séries:</label>
-                    <input
-                      type="number"
-                      value={workoutSets || ''}
-                      onChange={(e) => setWorkoutSets(Number(e.target.value))}
-                      className="w-20 h-12 rounded-lg text-center text-lg bg-zinc-800 border border-zinc-700 focus:outline-none focus:ring-2 focus:ring-red-500 transition-colors duration-200"
-                    />
+                    <div className="flex items-center gap-2">
+                      <Repeat size={20} className="text-zinc-400" />
+                      <label className="text-lg text-zinc-300">Séries:</label>
+                    </div>
+                    <div className="relative">
+                      <button
+                        onClick={() => setWorkoutSets(prev => Math.max(0, prev - 1))}
+                        className="absolute left-2 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-white transition-colors"
+                      >
+                        -
+                      </button>
+                      <input
+                        type="number"
+                        value={workoutSets || ''}
+                        onChange={(e) => setWorkoutSets(Number(e.target.value))}
+                        className="w-20 h-12 rounded-lg text-center text-lg bg-zinc-800/50 border border-zinc-700 focus:outline-none focus:ring-2 focus:ring-red-500 transition-colors duration-200 pl-8 pr-8"
+                      />
+                      <button
+                        onClick={() => setWorkoutSets(prev => prev + 1)}
+                        className="absolute right-2 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-white transition-colors"
+                      >
+                        +
+                      </button>
+                    </div>
                   </div>
                   <div className="flex items-center justify-between w-full border-b border-zinc-700 pb-3">
-                    <label className="text-lg text-zinc-300">Repetições:</label>
-                    <input
-                      type="number"
-                      value={workoutReps || ''}
-                      onChange={(e) => setWorkoutReps(Number(e.target.value))}
-                      className="w-20 h-12 rounded-lg text-center text-lg bg-zinc-800 border border-zinc-700 focus:outline-none focus:ring-2 focus:ring-red-500 transition-colors duration-200"
-                    />
+                    <div className="flex items-center gap-2">
+                      <Repeat size={20} className="text-zinc-400" />
+                      <label className="text-lg text-zinc-300">Repetições:</label>
+                    </div>
+                    <div className="relative">
+                      <button
+                        onClick={() => setWorkoutReps(prev => Math.max(0, prev - 1))}
+                        className="absolute left-2 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-white transition-colors"
+                      >
+                        -
+                      </button>
+                      <input
+                        type="number"
+                        value={workoutReps || ''}
+                        onChange={(e) => setWorkoutReps(Number(e.target.value))}
+                        className="w-20 h-12 rounded-lg text-center text-lg bg-zinc-800/50 border border-zinc-700 focus:outline-none focus:ring-2 focus:ring-red-500 transition-colors duration-200 pl-8 pr-8"
+                      />
+                      <button
+                        onClick={() => setWorkoutReps(prev => prev + 1)}
+                        className="absolute right-2 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-white transition-colors"
+                      >
+                        +
+                      </button>
+                    </div>
                   </div>
                 </div>
               )}
@@ -297,17 +331,28 @@ export default function Page() {
               <div className="flex-1 flex flex-col min-h-0 mt-4 px-1">
                 <div className="flex flex-col gap-3 mb-3">
                   <div className="flex gap-3 flex-wrap">
-                    <input
-                      type="text"
-                      placeholder="Buscar por nome..."
-                      value={exerciseNameFilter}
-                      onChange={(e) => setExerciseNameFilter(e.target.value)}
-                      className="flex-1 h-10 rounded-lg px-4 text-sm bg-zinc-800 border border-zinc-700 focus:outline-none focus:ring-2 focus:ring-red-500 transition-all duration-200"
-                    />
+                    <div className="flex-1 relative">
+                      <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400" />
+                      <input
+                        type="text"
+                        placeholder="Buscar por nome..."
+                        value={exerciseNameFilter}
+                        onChange={(e) => setExerciseNameFilter(e.target.value)}
+                        className="w-full h-10 rounded-lg pl-10 pr-4 text-sm bg-zinc-800/50 border border-zinc-700 focus:outline-none focus:ring-2 focus:ring-red-500 transition-all duration-200"
+                      />
+                      {exerciseNameFilter && (
+                        <button
+                          onClick={() => setExerciseNameFilter('')}
+                          className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-white transition-colors"
+                        >
+                          <X size={16} />
+                        </button>
+                      )}
+                    </div>
                     <select
                       value={exerciseBodyPartFilter}
                       onChange={(e) => setExerciseBodyPartFilter(e.target.value)}
-                      className="w-full sm:w-auto min-w-[180px] h-10 rounded-lg px-4 text-sm bg-zinc-800 border border-zinc-700 focus:outline-none focus:ring-2 focus:ring-red-500 transition-all duration-200"
+                      className="w-full sm:w-auto min-w-[180px] h-10 rounded-lg px-4 text-sm bg-zinc-800/50 border border-zinc-700 focus:outline-none focus:ring-2 focus:ring-red-500 transition-all duration-200"
                     >
                       <option value="">Todos os músculos</option>
                       {workoutBodyParts.map((bodyPart) => (
@@ -334,19 +379,22 @@ export default function Page() {
                             className={cn(
                               "flex justify-between items-center p-4 rounded-lg transition-all duration-200 cursor-pointer relative overflow-hidden",
                               isSelected
-                                ? "bg-zinc-700 border border-green-500 shadow-md"
-                                : "bg-zinc-800 border border-zinc-700 hover:bg-zinc-700"
+                                ? "bg-zinc-700/50 border border-green-500 shadow-md"
+                                : "bg-zinc-800/50 border border-zinc-700 hover:bg-zinc-700"
                             )}
                           >
                             {isSelected && (
                               <div className="absolute top-0 left-0 w-2 h-full bg-green-500" />
                             )}
-                            <div className="text-base sm:text-lg font-medium">{capitalize(exercise.name)}</div>
+                            <div className="flex items-center gap-3">
+                              <Dumbbell size={20} className="text-zinc-400" />
+                              <div className="text-base sm:text-lg font-medium">{capitalize(exercise.name)}</div>
+                            </div>
                             <div className="flex items-center gap-3">
                               <div
                                 className={cn(
                                   getBodyPartColor(exercise.bodyPart),
-                                  "flex justify-center items-center h-8 px-3 sm:px-4 rounded-lg text-xs sm:text-sm font-medium"
+                                  "flex justify-center items-center h-7 px-2.5 rounded-lg text-xs sm:text-sm font-medium"
                                 )}
                               >
                                 {exercise.bodyPart}
@@ -379,7 +427,7 @@ export default function Page() {
                 placeholder="Digite o nome do treino"
                 value={workoutName}
                 onChange={(e) => setWorkoutName(e.target.value)}
-                className="w-full max-w-md h-14 rounded-lg px-4 text-lg text-center bg-zinc-800 border border-zinc-700 focus:outline-none focus:ring-2 focus:ring-red-500 transition-all duration-200"
+                className="w-full max-w-md h-14 rounded-lg px-4 text-lg text-center bg-zinc-800/50 border border-zinc-700 focus:outline-none focus:ring-2 focus:ring-red-500 transition-all duration-200"
               />
 
               <div className="text-center text-zinc-400 text-sm max-w-sm">
@@ -390,7 +438,7 @@ export default function Page() {
         )}
 
         {/* Footer */}
-        <div className="fixed bottom-0 left-0 right-0 bg-zinc-800 shadow-[0_-2px_10px_rgba(0,0,0,0.2)] z-10">
+        <div className="fixed bottom-0 left-0 right-0 bg-zinc-800/50 shadow-[0_-2px_10px_rgba(0,0,0,0.2)] z-10">
           <div className="flex items-center justify-center px-4 py-3">
             <ActionButton
               onClick={handleNextStep}
@@ -419,11 +467,9 @@ export default function Page() {
         open={successDialogOpen}
         onOpenChange={setSuccessDialogOpen}
       >
+        <DialogOverlay className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm" />
         <DialogContent
           className="w-[95%] max-w-md rounded-lg bg-zinc-900 border-0 shadow-lg"
-          onInteractOutside={(e) => e.preventDefault()}
-          onEscapeKeyDown={(e) => e.preventDefault()}
-          onPointerDownOutside={(e) => e.preventDefault()}
         >
           <DialogHeader className="flex justify-center items-center">
             <DialogTitle className="text-xl font-bold">Treino criado!</DialogTitle>

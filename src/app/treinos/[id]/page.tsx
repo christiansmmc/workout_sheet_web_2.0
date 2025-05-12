@@ -29,62 +29,73 @@ export default function Page({ params }: { params: Promise<{ id: string }> }) {
     };
 
     return (
-        <main className='app-container'>
-            <header className="sticky top-0 z-10 flex items-center justify-center px-4 bg-zinc-800 h-12 shadow-lg border-b border-zinc-700">
-                {isSuccess && data && (
-                    <h1 className="text-lg font-semibold text-white truncate text-center">{data.name}</h1>
-                )}
+        <main className='min-h-screen bg-[#161619] flex flex-col'>
+            {/* Header com gradiente e efeito de blur */}
+            <header className="sticky top-0 z-20 backdrop-blur-lg bg-gradient-to-b from-[#18181b] to-[#18181b]/95 border-b border-zinc-800">
+                <div className="max-w-4xl mx-auto px-4 h-14 flex items-center justify-between">
+                    <div className="flex flex-col">
+                        <span className="text-xs text-zinc-400">Detalhes do treino</span>
+                        {isSuccess && data && (
+                            <h1 className="text-sm font-medium text-white truncate max-w-[200px]">
+                                {data.name}
+                            </h1>
+                        )}
+                    </div>
+
+                    <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-zinc-800/50">
+                        <span className="text-sm text-zinc-300">
+                            {isSuccess && data ? `${data.workoutExercises.length} exercícios` : '...'}
+                        </span>
+                    </div>
+                </div>
             </header>
 
-            <div
-                className='flex flex-col items-center mt-4 pb-20 max-h-[calc(100vh-8rem)] overflow-y-auto lg:gap-6'>
-                {isSuccess && data ? (
-                    data?.workoutExercises
-                        .sort((a, b) => {
-                            const bodyPartComparison = a.exercise.bodyPart.localeCompare(b.exercise.bodyPart);
-
-                            return bodyPartComparison === 0
-                                ? a.exercise.name.localeCompare(b.exercise.name)
-                                : bodyPartComparison;
-                        })
-                        .map((workoutExercise) => (
-                            <ExerciseCard
-                                key={workoutExercise.exercise.id}
-                                workoutExercise={workoutExercise}
-                                workoutId={unwrappedParams.id}
-                            />
-                        ))
-                ) : (
-                    <div className="absolute inset-0 flex items-center justify-center">
-                        <BeatLoader size={26} color="#dc2626" />
-                    </div>
-                )}
+            {/* Container principal com scroll */}
+            <div className="flex-1 overflow-y-auto">
+                {/* Lista de exercícios */}
+                <div className="max-w-4xl mx-auto px-4 py-6 space-y-4 bg-[#161619]">
+                    {isSuccess && data ? (
+                        data?.workoutExercises
+                            .sort((a, b) => {
+                                const bodyPartComparison = a.exercise.bodyPart.localeCompare(b.exercise.bodyPart);
+                                return bodyPartComparison === 0
+                                    ? a.exercise.name.localeCompare(b.exercise.name)
+                                    : bodyPartComparison;
+                            })
+                            .map((workoutExercise) => (
+                                <ExerciseCard
+                                    key={workoutExercise.exercise.id}
+                                    workoutExercise={workoutExercise}
+                                    workoutId={unwrappedParams.id}
+                                />
+                            ))
+                    ) : (
+                        <div className="flex items-center justify-center min-h-[60vh]">
+                            <BeatLoader size={26} color="#ef4444" />
+                        </div>
+                    )}
+                </div>
             </div>
 
+            {/* Fixed Bottom Bar */}
             {isSuccess && data && data.workoutExercises.length > 0 && (
-                <div className="fixed bottom-0 left-0 right-0 bg-zinc-800 shadow-[0_-2px_10px_rgba(0,0,0,0.2)] z-10">
-                    <div className="flex items-center justify-between px-4 py-3 relative">
-                        <button
-                            onClick={handleGoBack}
-                            className='flex items-center justify-center p-1.5 rounded-full hover:bg-zinc-700 active:bg-zinc-600 transition-colors bg-transparent border-0 z-10'
-                            aria-label="Voltar para a página inicial"
-                        >
-                            <ArrowLeft size={24} />
-                        </button>
-
-                        <div className="absolute left-0 right-0 flex justify-center items-center">
-                            <ActionButton
-                                onClick={handleStartWorkout}
-                                width="w-48"
-                                height="h-10"
-                                className="flex items-center justify-center gap-2"
+                <div className="sticky bottom-0 left-0 right-0 bg-[#18181b]/95 backdrop-blur-lg border-t border-zinc-800">
+                    <div className="max-w-4xl mx-auto px-4 py-3">
+                        <div className="flex items-center gap-3">
+                            <button
+                                onClick={handleGoBack}
+                                className="w-32 py-3 rounded-xl bg-zinc-800/50 hover:bg-zinc-700/50 transition-colors"
                             >
-                                <Play size={16} />
-                                Iniciar Treino
-                            </ActionButton>
+                                <span className="font-medium">Voltar</span>
+                            </button>
+                            <button
+                                onClick={handleStartWorkout}
+                                className="flex-1 py-3 rounded-xl bg-red-500 hover:bg-red-600 transition-colors flex items-center justify-center gap-2"
+                            >
+                                <Play size={18} />
+                                <span className="font-medium">Iniciar treino</span>
+                            </button>
                         </div>
-
-                        <div className="w-[33px]"></div>
                     </div>
                 </div>
             )}

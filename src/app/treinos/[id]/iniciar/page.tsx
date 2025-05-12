@@ -246,112 +246,232 @@ export default function StartWorkoutPage({ params }: { params: Promise<{ id: str
     };
 
     return (
-        <main className='app-container relative'>
-            {/* Header condensado e não expansível */}
-            <header className="sticky top-0 z-10 flex items-center justify-center px-4 bg-zinc-800 h-12 shadow-lg border-b border-zinc-700">
-                {isSuccess && data && (
-                    <h1 className="text-lg font-semibold text-white truncate max-w-[80%]">{data.name}</h1>
-                )}
+        <main className='min-h-screen bg-[#161619] flex flex-col'>
+            {/* Header com gradiente e efeito de blur */}
+            <header className="sticky top-0 z-20 backdrop-blur-lg bg-gradient-to-b from-[#18181b] to-[#18181b]/95 border-b border-zinc-800">
+                <div className="max-w-4xl mx-auto px-4 h-14 flex items-center justify-between">
+                    <div className="flex flex-col">
+                        <span className="text-xs text-zinc-400">Treino atual</span>
+                        {isSuccess && data && (
+                            <h1 className="text-sm font-medium text-white truncate max-w-[200px]">
+                                {data.name}
+                            </h1>
+                        )}
+                    </div>
+
+                    <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-zinc-800/50">
+                        <span className="text-sm text-zinc-300">
+                            {isSuccess && data ? `${data.workoutExercises.length} exercícios` : '...'}
+                        </span>
+                    </div>
+                </div>
             </header>
 
-            <div className='flex flex-col items-center pt-2 pb-20 max-h-[calc(100vh-8rem)] overflow-y-auto lg:gap-4'>
-                {isSuccess && data ? (
-                    <>
-                        {data?.workoutExercises
-                            .sort((a, b) => {
-                                const bodyPartComparison = a.exercise.bodyPart.localeCompare(b.exercise.bodyPart);
-                                return bodyPartComparison === 0
-                                    ? a.exercise.name.localeCompare(b.exercise.name)
-                                    : bodyPartComparison;
-                            })
-                            .map((workoutExercise) => {
-                                const exerciseId = workoutExercise.id;
-                                const tracking = exerciseTracking[exerciseId];
-                                const bodyPartColor = bodyPartColors[workoutExercise.exercise.bodyPart] || 'bg-zinc-600';
+            {/* Container principal com scroll */}
+            <div className="flex-1 overflow-y-auto">
+                {/* Lista de exercícios */}
+                <div className="max-w-4xl mx-auto px-4 py-6 space-y-4 bg-[#161619]">
+                    {isSuccess && data ? (
+                        <>
+                            {data?.workoutExercises
+                                .sort((a, b) => {
+                                    const bodyPartComparison = a.exercise.bodyPart.localeCompare(b.exercise.bodyPart);
+                                    return bodyPartComparison === 0
+                                        ? a.exercise.name.localeCompare(b.exercise.name)
+                                        : bodyPartComparison;
+                                })
+                                .map((workoutExercise) => {
+                                    const exerciseId = workoutExercise.id;
+                                    const tracking = exerciseTracking[exerciseId];
+                                    const bodyPartColor = bodyPartColors[workoutExercise.exercise.bodyPart] || 'bg-zinc-600';
 
-                                if (!tracking) return null;
+                                    if (!tracking) return null;
 
-                                const isDecided = tracking.status === 'completed' || tracking.status === 'skipped';
+                                    const isDecided = tracking.status === 'completed' || tracking.status === 'skipped';
 
-                                return (
-                                    <div
-                                        key={exerciseId}
-                                        className={`flex flex-col flex-shrink-0 ${isDecided ? 'bg-zinc-800/70' : 'bg-zinc-800'} rounded-lg w-[95%] max-w-2xl mx-auto mb-4 shadow-lg transition-all duration-300 ${tracking.status === 'completed' ? 'border-l-4 border-green-500' :
-                                            tracking.status === 'skipped' ? 'border-l-4 border-orange-500' : ''
-                                            }`}
-                                    >
-                                        {/* Exercise Header */}
-                                        <div className="flex justify-between items-center mt-2 pb-2 px-3 border-b border-zinc-600">
-                                            <div className="font-medium text-sm md:text-base lg:text-lg truncate pr-2">
-                                                <p>{capitalizeAllWords(workoutExercise.exercise.name)}</p>
-                                            </div>
-                                            <div className="flex-shrink-0">
-                                                <div
-                                                    className={`${bodyPartColor} flex justify-center items-center h-7 px-2 min-w-16 md:h-8 rounded-lg text-xs md:text-sm font-medium`}
-                                                >
-                                                    {workoutExercise.exercise.bodyPart}
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        {/* Exercise Details */}
-                                        <div className="flex justify-between items-center py-3 px-4 border-b border-zinc-700">
-                                            <div className="flex flex-col gap-2 w-full">
-                                                <div className="flex justify-between items-center">
-                                                    <div className="flex items-center">
-                                                        <span className="text-sm text-zinc-400 mr-2">Séries x Repetições:</span>
-                                                        <span className="font-medium">{workoutExercise.sets || 0}x{workoutExercise.reps || 0}</span>
-                                                    </div>
-                                                    <div className="flex items-center">
-                                                        <span className="text-sm text-zinc-400 mr-2">Carga:</span>
-                                                        <span className="font-medium">{workoutExercise.exerciseLoad || 0} kg</span>
+                                    return (
+                                        <div
+                                            key={exerciseId}
+                                            className={`relative overflow-hidden rounded-xl bg-zinc-800/50 backdrop-blur-sm border border-zinc-700/50 transition-all duration-300 ${tracking.status === 'completed' ? 'ring-1 ring-green-500/50' :
+                                                tracking.status === 'skipped' ? 'ring-1 ring-orange-500/50' : ''
+                                                }`}
+                                        >
+                                            {/* Exercise Header */}
+                                            <div className="flex items-center justify-between p-4 border-b border-zinc-700/50">
+                                                <div className="flex-1 min-w-0">
+                                                    <h3 className="text-base font-medium text-white truncate">
+                                                        {capitalizeAllWords(workoutExercise.exercise.name)}
+                                                    </h3>
+                                                    <div className="flex items-center gap-2 mt-1">
+                                                        <div className={`${bodyPartColor} px-2 py-0.5 rounded-full text-xs font-medium`}>
+                                                            {workoutExercise.exercise.bodyPart}
+                                                        </div>
+                                                        <div className="text-xs text-zinc-400">
+                                                            {workoutExercise.sets}x{workoutExercise.reps} • {workoutExercise.exerciseLoad}kg
+                                                        </div>
                                                     </div>
                                                 </div>
                                             </div>
-                                        </div>
 
-                                        {/* Exercise Status Indicator */}
-                                        {isDecided && (
-                                            <div className={`flex flex-col px-4 py-2 ${tracking.status === 'completed' ? 'bg-green-500/10' : 'bg-orange-500/10'}`}>
-                                                <div className="flex items-center justify-between">
-                                                    <span className={`text-sm font-medium ${tracking.status === 'completed' ? 'text-green-500' : 'text-orange-500'}`}>
-                                                        {tracking.status === 'completed' ? 'Exercício concluído' : 'Exercício pulado'}
-                                                    </span>
-                                                    <button
-                                                        onClick={() => resetExerciseStatus(exerciseId)}
-                                                        className="flex items-center gap-1 text-zinc-400 hover:text-zinc-300 transition-colors duration-200"
-                                                        title="Desfazer decisão"
-                                                    >
-                                                        <RotateCcw size={16} />
-                                                        <span className="text-sm">Desfazer</span>
-                                                    </button>
-                                                </div>
+                                            {/* Exercise Content */}
+                                            <div className="p-4">
+                                                {!isDecided ? (
+                                                    <div className="space-y-4">
+                                                        {/* Header com informações e botões de ação */}
+                                                        <div className="flex items-center justify-between">
+                                                            <div className="flex items-center gap-2">
+                                                                <button
+                                                                    onClick={() => toggleRepsInput(exerciseId)}
+                                                                    className="flex items-center gap-1.5 text-sm text-blue-400 hover:text-blue-300 transition-colors"
+                                                                >
+                                                                    {tracking.showRepsInput ? (
+                                                                        <>
+                                                                            <ChevronUp size={16} />
+                                                                            <span>Ocultar reps</span>
+                                                                        </>
+                                                                    ) : (
+                                                                        <>
+                                                                            <ChevronDown size={16} />
+                                                                            <span>Registrar reps</span>
+                                                                        </>
+                                                                    )}
+                                                                </button>
+                                                            </div>
 
-                                                {/* Exibir resumo das repetições quando o exercício for concluído */}
-                                                {tracking.status === 'completed' && (
-                                                    <>
-                                                        {tracking.repsPerSet.some(reps => reps && reps > 0) ? (
-                                                            <div className="mt-3 mb-1">
-                                                                <div className="flex items-center justify-between text-xs text-zinc-400 mb-1">
+                                                            <div className="flex items-center gap-2">
+                                                                <button
+                                                                    onClick={() => handleExerciseStatus(exerciseId, 'skipped')}
+                                                                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-orange-400 hover:bg-orange-500/10 transition-colors"
+                                                                >
+                                                                    <Ban size={16} />
+                                                                    <span className="text-sm">Pular</span>
+                                                                </button>
+
+                                                                <button
+                                                                    onClick={() => handleExerciseStatus(exerciseId, 'completed')}
+                                                                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-green-400 hover:bg-green-500/10 transition-colors"
+                                                                >
+                                                                    <CheckCircle size={16} />
+                                                                    <span className="text-sm">Concluir</span>
+                                                                </button>
+                                                            </div>
+                                                        </div>
+
+                                                        {/* Reps Input Grid */}
+                                                        {tracking.showRepsInput && (
+                                                            <div className="grid grid-cols-2 gap-3 pt-2 border-t border-zinc-700/50">
+                                                                {tracking.repsPerSet.map((reps, index) => (
+                                                                    <div key={index} className="space-y-1">
+                                                                        <label className="text-xs text-zinc-400">
+                                                                            Série {index + 1}
+                                                                        </label>
+                                                                        <div className="flex items-center">
+                                                                            <button
+                                                                                className="flex items-center justify-center h-9 w-9 bg-zinc-700 border border-zinc-600 rounded-l-lg hover:bg-zinc-600 transition-colors"
+                                                                                onClick={() => {
+                                                                                    const currentValue = reps || 0;
+                                                                                    if (currentValue > 0) {
+                                                                                        updateRepsForSet(exerciseId, index, currentValue - 1);
+                                                                                    }
+                                                                                }}
+                                                                            >
+                                                                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-zinc-400">
+                                                                                    <path d="M5 12h14"></path>
+                                                                                </svg>
+                                                                            </button>
+
+                                                                            <input
+                                                                                type="number"
+                                                                                inputMode="numeric"
+                                                                                placeholder={`${workoutExercise.reps || 0}`}
+                                                                                value={reps === null ? '' : reps}
+                                                                                onChange={(e) => {
+                                                                                    const value = e.target.value ? Number(e.target.value) : null;
+                                                                                    updateRepsForSet(exerciseId, index, value);
+                                                                                }}
+                                                                                className="w-full h-9 text-center border-y border-zinc-600 bg-zinc-700 placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-red-500 transition-all"
+                                                                            />
+
+                                                                            <button
+                                                                                className="flex items-center justify-center h-9 w-9 bg-zinc-700 border border-zinc-600 rounded-r-lg hover:bg-zinc-600 transition-colors"
+                                                                                onClick={() => {
+                                                                                    const currentValue = reps || 0;
+                                                                                    updateRepsForSet(exerciseId, index, currentValue + 1);
+                                                                                }}
+                                                                            >
+                                                                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-zinc-400">
+                                                                                    <path d="M12 5v14M5 12h14"></path>
+                                                                                </svg>
+                                                                            </button>
+                                                                        </div>
+
+                                                                        {/* Progress bar */}
+                                                                        <div className="flex items-center gap-2">
+                                                                            <div className="flex-1 h-1 bg-zinc-700 rounded-full overflow-hidden">
+                                                                                <div
+                                                                                    className={`h-full transition-all duration-300 ${reps === null ? 'bg-zinc-600' :
+                                                                                        reps >= (workoutExercise.reps || 0) ? 'bg-green-500' :
+                                                                                            reps >= (workoutExercise.reps || 0) * 0.7 ? 'bg-blue-500' :
+                                                                                                'bg-amber-500'
+                                                                                        }`}
+                                                                                    style={{ width: `${reps ? Math.min(100, (reps / (workoutExercise.reps || 1)) * 100) : 0}%` }}
+                                                                                />
+                                                                            </div>
+                                                                            <span className="text-xs text-zinc-400">
+                                                                                {reps || 0}/{workoutExercise.reps || 0}
+                                                                            </span>
+                                                                        </div>
+                                                                    </div>
+                                                                ))}
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                ) : (
+                                                    <div className={`p-4 rounded-lg ${tracking.status === 'completed' ? 'bg-green-500/10' : 'bg-orange-500/10'
+                                                        }`}>
+                                                        <div className="flex items-center justify-between">
+                                                            <div className="flex items-center gap-2">
+                                                                {tracking.status === 'completed' ? (
+                                                                    <CheckCircle size={18} className="text-green-500" />
+                                                                ) : (
+                                                                    <Ban size={18} className="text-orange-500" />
+                                                                )}
+                                                                <span className={`text-sm font-medium ${tracking.status === 'completed' ? 'text-green-500' : 'text-orange-500'
+                                                                    }`}>
+                                                                    {tracking.status === 'completed' ? 'Exercício concluído' : 'Exercício pulado'}
+                                                                </span>
+                                                            </div>
+                                                            <button
+                                                                onClick={() => resetExerciseStatus(exerciseId)}
+                                                                className="flex items-center gap-1 text-zinc-400 hover:text-zinc-300 transition-colors"
+                                                            >
+                                                                <RotateCcw size={16} />
+                                                                <span className="text-sm">Desfazer</span>
+                                                            </button>
+                                                        </div>
+
+                                                        {/* Reps Summary */}
+                                                        {tracking.status === 'completed' && tracking.repsPerSet.some(reps => reps && reps > 0) && (
+                                                            <div className="mt-4 space-y-3">
+                                                                <div className="flex items-center justify-between text-xs text-zinc-400">
                                                                     <span>Repetições por série</span>
                                                                     <span>Meta: {workoutExercise.reps} reps</span>
                                                                 </div>
-                                                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-1">
+                                                                <div className="grid grid-cols-2 gap-3">
                                                                     {tracking.repsPerSet.map((reps, index) => {
-                                                                        // Calcular a porcentagem para a barra de progresso
                                                                         const targetReps = workoutExercise.reps || 1;
                                                                         const percent = reps ? Math.min(100, (reps / targetReps) * 100) : 0;
                                                                         const barColor = percent >= 100 ? 'bg-green-500' : percent >= 75 ? 'bg-blue-500' : percent >= 50 ? 'bg-amber-500' : 'bg-red-500';
 
                                                                         return (
-                                                                            <div key={index} className="flex flex-col">
-                                                                                <div className="flex justify-between items-center mb-1">
+                                                                            <div key={index} className="space-y-1">
+                                                                                <div className="flex justify-between items-center">
                                                                                     <span className="text-xs text-zinc-300">Série {index + 1}</span>
                                                                                     <span className="text-xs font-medium">{reps || 0} reps</span>
                                                                                 </div>
-                                                                                <div className="h-2 w-full bg-zinc-700 rounded-full overflow-hidden">
+                                                                                <div className="h-1.5 w-full bg-zinc-700 rounded-full overflow-hidden">
                                                                                     <div
-                                                                                        className={`h-full ${barColor} transition-all duration-500 ease-out`}
+                                                                                        className={`h-full ${barColor} transition-all duration-500`}
                                                                                         style={{ width: `${percent}%` }}
                                                                                     />
                                                                                 </div>
@@ -360,142 +480,62 @@ export default function StartWorkoutPage({ params }: { params: Promise<{ id: str
                                                                     })}
                                                                 </div>
                                                             </div>
-                                                        ) : (
-                                                            <div className="mt-2">
-                                                                <p className="text-xs text-zinc-400">
-                                                                    Exercício concluído sem detalhamento de repetições
-                                                                </p>
-                                                            </div>
                                                         )}
-                                                    </>
+                                                    </div>
                                                 )}
                                             </div>
-                                        )}
-
-                                        {/* Exercise Controls */}
-                                        <div className="flex justify-between items-center px-4 py-3">
-                                            <div className="flex items-center">
-                                                {!isDecided && (
-                                                    <button
-                                                        onClick={() => toggleRepsInput(exerciseId)}
-                                                        className="flex items-center gap-1 text-blue-500 hover:text-blue-400 transition-colors duration-200"
-                                                    >
-                                                        {tracking.showRepsInput ? (
-                                                            <>
-                                                                <ChevronUp size={18} />
-                                                                <span>Ocultar reps</span>
-                                                            </>
-                                                        ) : (
-                                                            <>
-                                                                <ChevronDown size={18} />
-                                                                <span>Registrar reps</span>
-                                                            </>
-                                                        )}
-                                                    </button>
-                                                )}
-                                            </div>
-
-                                            {!isDecided && (
-                                                <div className="flex items-center gap-3">
-                                                    <button
-                                                        onClick={() => handleExerciseStatus(exerciseId, 'skipped')}
-                                                        className="p-1.5 rounded-full text-orange-500 hover:bg-orange-500/10 active:bg-orange-500/20 transition-colors duration-200"
-                                                        title="Pular exercício"
-                                                    >
-                                                        <Ban size={24} />
-                                                    </button>
-
-                                                    <button
-                                                        onClick={() => handleExerciseStatus(exerciseId, 'completed')}
-                                                        className="p-1.5 rounded-full text-green-500 hover:bg-green-500/10 active:bg-green-500/20 transition-colors duration-200"
-                                                        title="Completar exercício"
-                                                    >
-                                                        <CheckCircle size={24} />
-                                                    </button>
-                                                </div>
-                                            )}
                                         </div>
+                                    );
+                                })}
+                        </>
+                    ) : (
+                        <div className="flex items-center justify-center min-h-[60vh]">
+                            <BeatLoader size={26} color="#ef4444" />
+                        </div>
+                    )}
+                </div>
+            </div>
 
-                                        {/* Repetitions Input - Only show if not decided and showRepsInput is true */}
-                                        {!isDecided && tracking.showRepsInput && (
-                                            <div className="px-4 pb-4 pt-2 border-t border-zinc-700">
-                                                <p className="text-sm text-zinc-400 mb-3">Repetições realizadas por série:</p>
-                                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                                    {tracking.repsPerSet.map((reps, index) => (
-                                                        <div key={index} className="relative flex flex-col">
-                                                            <label className="text-sm text-zinc-400 mb-1">
-                                                                Série {index + 1}
-                                                            </label>
-                                                            <div className="flex items-center w-full">
-                                                                <button
-                                                                    className="flex items-center justify-center h-12 w-12 bg-zinc-800 border border-zinc-700 rounded-l-lg hover:bg-zinc-700 active:bg-zinc-600 transition-all duration-200"
-                                                                    onClick={() => {
-                                                                        const currentValue = reps || 0;
-                                                                        if (currentValue > 0) {
-                                                                            updateRepsForSet(exerciseId, index, currentValue - 1);
-                                                                        }
-                                                                    }}
-                                                                >
-                                                                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-zinc-400">
-                                                                        <path d="M5 12h14"></path>
-                                                                    </svg>
-                                                                </button>
-
-                                                                <input
-                                                                    type="number"
-                                                                    inputMode="numeric"
-                                                                    placeholder={`${workoutExercise.reps || 0}`}
-                                                                    value={reps === null ? '' : reps}
-                                                                    onChange={(e) => {
-                                                                        const value = e.target.value ? Number(e.target.value) : null;
-                                                                        updateRepsForSet(exerciseId, index, value);
-                                                                    }}
-                                                                    className="w-full h-12 text-center border-y border-zinc-700 bg-zinc-800 placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-red-500 transition-all duration-300"
-                                                                />
-
-                                                                <button
-                                                                    className="flex items-center justify-center h-12 w-12 bg-zinc-800 border border-zinc-700 rounded-r-lg hover:bg-zinc-700 active:bg-zinc-600 transition-all duration-200"
-                                                                    onClick={() => {
-                                                                        const currentValue = reps || 0;
-                                                                        updateRepsForSet(exerciseId, index, currentValue + 1);
-                                                                    }}
-                                                                >
-                                                                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-zinc-400">
-                                                                        <path d="M12 5v14M5 12h14"></path>
-                                                                    </svg>
-                                                                </button>
-                                                            </div>
-
-                                                            {/* Mostrar uma barra de progresso durante a entrada */}
-                                                            <div className="flex items-center w-full mt-1">
-                                                                <div className="h-1 w-full bg-zinc-700 rounded-full overflow-hidden">
-                                                                    <div
-                                                                        className={`h-full transition-all duration-300 ease-out ${reps === null ? 'bg-zinc-600' :
-                                                                            reps >= (workoutExercise.reps || 0) ? 'bg-green-500' :
-                                                                                reps >= (workoutExercise.reps || 0) * 0.7 ? 'bg-blue-500' :
-                                                                                    'bg-amber-500'
-                                                                            }`}
-                                                                        style={{ width: `${reps ? Math.min(100, (reps / (workoutExercise.reps || 1)) * 100) : 0}%` }}
-                                                                    />
-                                                                </div>
-                                                                <span className="ml-2 text-xs text-zinc-400">
-                                                                    {reps || 0}/{workoutExercise.reps || 0}
-                                                                </span>
-                                                            </div>
-                                                        </div>
-                                                    ))}
-                                                </div>
-                                            </div>
-                                        )}
-                                    </div>
-                                );
-                            })}
-                    </>
-                ) : (
-                    <div className="absolute inset-0 flex items-center justify-center">
-                        <BeatLoader size={26} color="#dc2626" />
+            {/* Fixed Bottom Bar */}
+            <div className="sticky bottom-0 left-0 right-0 bg-[#18181b]/95 backdrop-blur-lg border-t border-zinc-800">
+                <div className="max-w-4xl mx-auto px-4 py-3">
+                    {/* Progress Bar */}
+                    <div className="flex items-center justify-between mb-3">
+                        <span className="text-sm text-zinc-400">Progresso do treino</span>
+                        <span className="text-sm font-medium text-zinc-300">{progressPercentage}%</span>
                     </div>
-                )}
+                    <div className="w-full h-2 bg-zinc-800/50 rounded-full overflow-hidden mb-4">
+                        <div
+                            className="bg-red-500 h-full transition-all duration-300 ease-out"
+                            style={{ width: `${progressPercentage}%` }}
+                        />
+                    </div>
+
+                    {/* Action Buttons */}
+                    <div className="flex items-center gap-3">
+                        <button
+                            onClick={handleCancel}
+                            className="w-32 py-3 rounded-xl bg-zinc-800/50 hover:bg-zinc-700/50 transition-colors"
+                        >
+                            <span className="font-medium">Cancelar</span>
+                        </button>
+                        <button
+                            onClick={finishWorkout}
+                            disabled={isSubmitting || !areAllExercisesDecided}
+                            className={`flex-1 py-3 rounded-xl bg-red-500 hover:bg-red-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors ${isSubmitting ? 'opacity-70' : ''
+                                }`}
+                        >
+                            {isSubmitting ? (
+                                <span className="flex items-center justify-center gap-2">
+                                    <BeatLoader size={8} color="#ffffff" />
+                                    <span className="font-medium">Salvando...</span>
+                                </span>
+                            ) : (
+                                <span className="font-medium">Concluir treino</span>
+                            )}
+                        </button>
+                    </div>
+                </div>
             </div>
 
             {/* Alert Modal for incomplete exercises */}
@@ -646,52 +686,6 @@ export default function StartWorkoutPage({ params }: { params: Promise<{ id: str
                     </div>
                 </DialogContent>
             </Dialog>
-
-            {/* Fixed footer with progress and action buttons */}
-            <div className="fixed bottom-0 left-0 right-0 bg-zinc-800 shadow-[0_-2px_10px_rgba(0,0,0,0.2)] z-10">
-                {/* Barra de progresso */}
-                <div className="w-full bg-zinc-700 h-1.5">
-                    <div
-                        className="bg-red-600 h-full transition-all duration-300 ease-out"
-                        style={{ width: `${progressPercentage}%` }}
-                    />
-                </div>
-
-                <div className="flex items-center justify-between px-4 py-3 relative">
-                    {/* Botão Cancelar à esquerda */}
-                    <div
-                        onClick={handleCancel}
-                        className='cursor-pointer py-1.5 px-3 rounded-md hover:bg-zinc-700 active:bg-zinc-600 transition-colors z-10'>
-                        <span className="font-medium text-sm md:text-base">Cancelar</span>
-                    </div>
-
-                    {/* Progresso centralizado absoluto */}
-                    <div className="absolute left-0 right-0 flex justify-center items-center">
-                        <div className="flex items-center">
-                            <span className="text-sm text-zinc-400 mr-2">Progresso:</span>
-                            <span className="font-medium text-sm">{progressPercentage}%</span>
-                        </div>
-                    </div>
-
-                    {/* Botão Concluir à direita */}
-                    <div className="z-10">
-                        <button
-                            onClick={finishWorkout}
-                            disabled={isSubmitting}
-                            className={`rounded-md bg-red-600 hover:bg-red-700 py-1.5 px-4 text-sm md:text-base font-medium transition-colors ${!areAllExercisesDecided || isSubmitting ? 'opacity-70' : ''}`}
-                        >
-                            {isSubmitting ? (
-                                <span className="flex items-center gap-2">
-                                    <BeatLoader size={8} color="#ffffff" />
-                                    <span>Salvando</span>
-                                </span>
-                            ) : (
-                                "Concluir"
-                            )}
-                        </button>
-                    </div>
-                </div>
-            </div>
         </main>
     );
 }

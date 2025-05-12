@@ -1,6 +1,6 @@
 'use client';
 
-import { DoorOpen, User, PlusCircle } from 'lucide-react';
+import { DoorOpen, User, PlusCircle, Dumbbell } from 'lucide-react';
 import { BeatLoader } from 'react-spinners';
 import Cookie from 'js-cookie';
 import { useRouter } from 'next/navigation';
@@ -23,6 +23,7 @@ import {
   useSortable
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
+import ActionButton from '@/components/button/actionButton';
 
 interface Workout {
   id: string;
@@ -154,22 +155,23 @@ export default function Page() {
   };
 
   return (
-    <main className="app-container">
+    <main className="min-h-screen bg-[#161619] flex flex-col">
       {/* Header */}
-      <header className="flex items-center justify-between px-6 sm:px-10 bg-zinc-800 h-16 shadow-lg 
-                        sticky top-0 z-10 backdrop-blur-sm bg-opacity-90">
-        <div
+      <header className="flex items-center justify-between px-4 sm:px-6 lg:px-10 bg-zinc-800/50 h-16 shadow-lg backdrop-blur-sm">
+        <button
           onClick={handleLogout}
-          className="cursor-pointer p-2 rounded-full active:bg-neutral-600 lg:hover:bg-neutral-700 
-                   transition-all duration-200 hover:scale-105">
-          <DoorOpen size={24} />
-        </div>
-        <h1 className="text-xl font-semibold">Meus Treinos</h1>
-        <div
-          className="cursor-pointer p-2 rounded-full active:bg-neutral-600 lg:hover:bg-neutral-700 
-                   transition-all duration-200 hover:scale-105">
-          <User size={24} />
-        </div>
+          className="flex items-center gap-2 px-3 py-1.5 rounded-md bg-zinc-700/50 text-white hover:bg-zinc-700 active:bg-zinc-600 transition-colors duration-200"
+        >
+          <DoorOpen size={18} />
+          <span className="text-sm">Sair</span>
+        </button>
+        <h1 className="text-xl font-semibold text-white">Meus Treinos</h1>
+        <button
+          className="flex items-center gap-2 px-3 py-1.5 rounded-md bg-zinc-700/50 text-white hover:bg-zinc-700 active:bg-zinc-600 transition-colors duration-200"
+        >
+          <User size={18} />
+          <span className="text-sm">Perfil</span>
+        </button>
       </header>
 
       {/* Workout List */}
@@ -185,7 +187,7 @@ export default function Page() {
                   {workouts.map((workout) => (
                     <div
                       key={workout.id}
-                      className={`transition-opacity duration-500 ${isLoaded ? 'opacity-100' : 'opacity-0'}`}
+                      className={`transition-all duration-500 ${isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}
                       style={{
                         transitionDelay: `${workouts.indexOf(workout) * 50}ms`
                       }}
@@ -210,7 +212,7 @@ export default function Page() {
                     {workouts.map((workout) => (
                       <div
                         key={workout.id}
-                        className={`transition-opacity duration-500 ${isLoaded ? 'opacity-100' : 'opacity-0'}`}
+                        className={`transition-all duration-500 ${isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}
                         style={{
                           transitionDelay: `${workouts.indexOf(workout) * 50}ms`
                         }}
@@ -226,23 +228,26 @@ export default function Page() {
               )
             ) : (
               <div className="flex flex-col items-center justify-center h-80 text-center p-6 
-                            bg-zinc-800 rounded-xl shadow-lg border border-zinc-700
+                            bg-zinc-800/50 rounded-xl shadow-lg border border-zinc-700
                             transition-all duration-500 ease-in-out opacity-0 animate-fadeIn">
+                <Dumbbell size={48} className="text-zinc-600 mb-4" />
                 <p className="text-xl text-zinc-300 mb-4">Nenhum treino encontrado</p>
                 <p className="text-zinc-400 mb-6">Crie seu primeiro treino para começar</p>
-                <button
+                <ActionButton
                   onClick={handleEnterCreateWorkout}
-                  className="flex items-center gap-2 bg-red-600 text-white py-3 px-6 rounded-lg 
-                            hover:bg-red-700 transition-all duration-300 active:scale-95 transform
-                            hover:shadow-lg hover:translate-y-[-2px]">
+                  width="w-48"
+                  height="h-12"
+                  className="flex items-center justify-center gap-2"
+                >
                   <PlusCircle size={20} />
                   Criar treino
-                </button>
+                </ActionButton>
               </div>
             )
           ) : (
-            <div className="absolute inset-0 flex items-center justify-center">
+            <div className="flex flex-col items-center justify-center h-80">
               <BeatLoader size={24} color="#dc2626" />
+              <p className="text-zinc-400 mt-4">Carregando treinos...</p>
             </div>
           )}
         </div>
