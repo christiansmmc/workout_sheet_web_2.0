@@ -15,6 +15,8 @@ import {
   useSensor,
   useSensors,
   PointerSensor,
+  MouseSensor,
+  TouchSensor,
   closestCenter
 } from '@dnd-kit/core';
 import {
@@ -90,9 +92,11 @@ export default function Page() {
 
   // DnD sensors configuration
   const sensors = useSensors(
-    useSensor(PointerSensor, {
+    useSensor(MouseSensor),
+    useSensor(TouchSensor, {
       activationConstraint: {
-        distance: 8,
+        delay: 150,
+        tolerance: 5,
       },
     })
   );
@@ -175,8 +179,8 @@ export default function Page() {
       </header>
 
       {/* Workout List */}
-      <section className="flex-1 flex flex-col items-center py-8 px-4 sm:px-6 md:px-8 lg:px-10 overflow-y-auto">
-        <div className="w-full max-w-2xl mx-auto pb-20">
+      <section className="w-full flex flex-col items-center py-8 px-4 sm:px-6 md:px-8 lg:px-10">
+        <div className="w-full max-w-2xl mx-auto pb-8 dnd-touch-fix">
           {isSuccess && data ? (
             workouts.length > 0 ? (
               patchWorkoutsListOrderIsPending ? (

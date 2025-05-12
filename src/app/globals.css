@@ -27,8 +27,10 @@
 
     html,
     body {
-        height: 100dvh;
-        overscroll-behavior: none;
+        /* height: 100dvh; */
+        /* Removido para evitar problemas de scroll no iOS */
+        /* overscroll-behavior: none; */
+        /* Removido para evitar problemas de scroll no iOS */
         -webkit-overflow-scrolling: touch;
     }
 
@@ -36,10 +38,11 @@
         @apply bg-dark-900 text-dark-50 antialiased;
     }
 
-    #__next,
+    /* Removido h-full para evitar problemas de scroll */
+    /* #__next,
     main {
         @apply h-full;
-    }
+    } */
 }
 
 @layer components {
@@ -47,13 +50,15 @@
     /* Para as páginas de app */
     .app-container {
         @apply flex flex-col;
-        height: 100dvh;
-        overflow: hidden;
+        /* height: 100dvh; */
+        /* Removido para evitar problemas de scroll no iOS */
+        /* overflow: hidden; */
+        /* Removido para evitar problemas de scroll no iOS */
     }
 
     /* Para as páginas de login/home */
     .auth-container {
-        @apply min-h-screen overflow-auto;
+        @apply min-h-screen;
     }
 }
 
@@ -96,4 +101,11 @@
 .ios-scroll-fix {
     -webkit-overflow-scrolling: touch;
     overscroll-behavior: contain;
+}
+
+.dnd-touch-fix {
+    touch-action: none;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    user-select: none;
 }

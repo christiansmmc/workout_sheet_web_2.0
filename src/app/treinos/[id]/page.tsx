@@ -33,13 +33,22 @@ export default function Page({ params }: { params: Promise<{ id: string }> }) {
             {/* Header com gradiente e efeito de blur */}
             <header className="sticky top-0 z-20 backdrop-blur-lg bg-gradient-to-b from-[#18181b] to-[#18181b]/95 border-b border-zinc-800">
                 <div className="max-w-4xl mx-auto px-4 h-14 flex items-center justify-between">
-                    <div className="flex flex-col">
-                        <span className="text-xs text-zinc-400">Detalhes do treino</span>
-                        {isSuccess && data && (
-                            <h1 className="text-sm font-medium text-white truncate max-w-[200px]">
-                                {data.name}
-                            </h1>
-                        )}
+                    <div className="flex items-center gap-2 flex-1 min-w-0">
+                        <button
+                            onClick={handleGoBack}
+                            className="p-1 rounded hover:bg-zinc-700/40 focus:outline-none focus:ring-2 focus:ring-red-500 transition-colors mr-2"
+                            aria-label="Voltar"
+                        >
+                            <ArrowLeft size={18} className="text-zinc-400 hover:text-red-500" />
+                        </button>
+                        <div className="flex flex-col min-w-0">
+                            <span className="text-xs text-zinc-400">Detalhes do treino</span>
+                            {isSuccess && data && (
+                                <h1 className="text-sm font-medium text-white truncate max-w-[200px]">
+                                    {data.name}
+                                </h1>
+                            )}
+                        </div>
                     </div>
 
                     <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-zinc-800/50">
