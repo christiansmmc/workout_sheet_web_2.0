@@ -159,7 +159,7 @@ export default function Page() {
   };
 
   return (
-    <main className="min-h-screen bg-[#161619] flex flex-col">
+    <main className="h-full bg-[#161619] flex flex-col overflow-hidden ios-scroll-fix">
       {/* Header */}
       <header className="flex items-center justify-between px-4 sm:px-6 lg:px-10 bg-zinc-800/50 h-16 shadow-lg backdrop-blur-sm">
         <button
@@ -179,7 +179,7 @@ export default function Page() {
       </header>
 
       {/* Workout List */}
-      <section className="w-full flex flex-col items-center py-8 px-4 sm:px-6 md:px-8 lg:px-10">
+      <section className="w-full flex flex-col items-center py-8 px-4 sm:px-6 md:px-8 lg:px-10 flex-1 overflow-y-auto bg-[#161619]">
         <div className="w-full max-w-2xl mx-auto pb-8 dnd-touch-fix">
           {isSuccess && data ? (
             workouts.length > 0 ? (

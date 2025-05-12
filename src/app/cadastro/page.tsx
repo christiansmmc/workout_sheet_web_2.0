@@ -100,7 +100,7 @@ export default function RegistrationPage() {
   };
 
   return (
-    <div className="auth-container flex flex-col lg:flex-row">
+    <div className="h-full overflow-hidden ios-scroll-fix flex flex-col lg:flex-row">
       {/* Mobile & Tablet Image Section */}
       <div className="block lg:hidden w-full h-64 relative">
         <Image
@@ -125,7 +125,7 @@ export default function RegistrationPage() {
 
       {/* Form Section */}
       <div className="w-full lg:w-1/2 flex items-center justify-center 
-                      px-6 py-12 lg:px-16 xl:px-24">
+                      px-6 py-12 lg:px-16 xl:px-24 flex-1 lg:flex-none overflow-y-auto">
         <div className="w-full max-w-md">
           <h1 className="text-3xl md:text-4xl font-bold text-center mb-8">
             Crie sua conta

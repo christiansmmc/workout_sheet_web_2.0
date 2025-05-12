@@ -143,7 +143,7 @@ export default function Page() {
   }, [successDialogOpen]);
 
   return (
-    <main className="min-h-screen bg-[#161619] flex flex-col">
+    <main className="h-full bg-[#161619] flex flex-col overflow-hidden ios-scroll-fix">
       {/* Header */}
       <header className="flex items-center justify-between px-4 sm:px-6 lg:px-10 bg-zinc-800/50 h-16 shadow-lg">
         <button
@@ -181,7 +181,7 @@ export default function Page() {
       </div>
 
       {/* Content */}
-      <div className="flex-1 flex flex-col min-h-0 p-4 sm:p-6 pb-20 max-w-3xl mx-auto w-full">
+      <div className="flex-1 flex flex-col min-h-0 p-4 sm:p-6 pb-20 max-w-3xl mx-auto w-full overflow-y-auto">
         {/* Step 1: Selecionar Músculos */}
         {currentStep === 1 && (
           <div className="flex flex-col flex-1 gap-6 sm:gap-8">

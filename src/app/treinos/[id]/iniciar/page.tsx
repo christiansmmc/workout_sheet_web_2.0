@@ -246,13 +246,13 @@ export default function StartWorkoutPage({ params }: { params: Promise<{ id: str
     };
 
     return (
-        <main className='min-h-screen bg-[#161619] flex flex-col overflow-hidden'>
+        <main className='h-full bg-[#161619] flex flex-col overflow-hidden ios-scroll-fix'>
             {/* Header com gradiente e efeito de blur */}
-            <header className="sticky top-0 z-20 backdrop-blur-lg bg-gradient-to-b from-[#18181b] to-[#18181b]/95 border-b border-zinc-800">
+            <header className="z-20 backdrop-blur-lg bg-gradient-to-b from-[#18181b] to-[#18181b]/95 border-b border-zinc-800">
                 <div className="max-w-4xl mx-auto px-4 h-14 flex items-center justify-between">
                     <div className="flex items-center gap-2 flex-1 min-w-0">
                         <button
-                            onClick={() => router.push('/treinos')}
+                            onClick={handleCancel}
                             className="p-1 rounded hover:bg-zinc-700/40 focus:outline-none focus:ring-2 focus:ring-red-500 transition-colors mr-2"
                             aria-label="Voltar"
                         >
@@ -277,7 +277,7 @@ export default function StartWorkoutPage({ params }: { params: Promise<{ id: str
             </header>
 
             {/* Container principal com scroll */}
-            <div className="flex-1 overflow-y-auto pb-32 ios-scroll-fix">
+            <div className="flex-1 overflow-y-auto pb-32 ios-scroll-fix bg-[#161619]">
                 {/* Lista de exercícios */}
                 <div className="max-w-4xl mx-auto px-4 py-6 space-y-4 bg-[#161619]">
                     {isSuccess && data ? (

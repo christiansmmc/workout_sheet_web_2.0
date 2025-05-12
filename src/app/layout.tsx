@@ -33,8 +33,8 @@ export default function RootLayout({
 }) {
     return (
         <ReactQueryProvider>
-            <html lang="pt-BR" className={inter.className}>
-                <body className="bg-zinc-900 text-zinc-100 antialiased">
+            <html lang="pt-BR" className={`${inter.className} h-full`}>
+                <body className={`h-full antialiased`}>
                     {children}
                     <ToastContainer
                         position="top-right"

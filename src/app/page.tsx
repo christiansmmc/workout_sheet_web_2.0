@@ -17,11 +17,11 @@ export default function Home() {
   }, []);
 
   return (
-    <div className="auth-container flex flex-col lg:flex-row">
+    <div className="h-full overflow-hidden ios-scroll-fix flex flex-col lg:flex-row">
       {/* Content Section */}
       <div className="w-full lg:w-1/2 flex items-center justify-center 
                       px-6 py-8 lg:px-16 xl:px-24 
-                      order-2 lg:order-1">
+                      order-2 lg:order-1 flex-1 lg:flex-none overflow-y-auto">
         <div className={`w-full max-w-md transition-opacity duration-700 ease-out ${isLoaded ? 'opacity-100' : 'opacity-0'}`}>
           <h1 className="text-3xl sm:text-4xl font-bold mb-4 sm:mb-6 text-center lg:text-left 
                         bg-clip-text text-transparent bg-gradient-to-r from-red-500 to-red-600">

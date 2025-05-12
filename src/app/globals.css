@@ -25,24 +25,24 @@
         box-sizing: border-box;
     }
 
+    html {
+        @apply bg-[#161619];
+    }
+
     html,
     body {
-        /* height: 100dvh; */
-        /* Removido para evitar problemas de scroll no iOS */
-        /* overscroll-behavior: none; */
-        /* Removido para evitar problemas de scroll no iOS */
-        -webkit-overflow-scrolling: touch;
+        height: 100%;
     }
 
     body {
-        @apply bg-dark-900 text-dark-50 antialiased;
+        @apply bg-[#161619] text-dark-50 antialiased;
+        overscroll-behavior: contain;
     }
 
     /* Removido h-full para evitar problemas de scroll */
-    /* #__next,
-    main {
+    #__next {
         @apply h-full;
-    } */
+    }
 }
 
 @layer components {
@@ -50,10 +50,6 @@
     /* Para as páginas de app */
     .app-container {
         @apply flex flex-col;
-        /* height: 100dvh; */
-        /* Removido para evitar problemas de scroll no iOS */
-        /* overflow: hidden; */
-        /* Removido para evitar problemas de scroll no iOS */
     }
 
     /* Para as páginas de login/home */
@@ -104,7 +100,7 @@
 }
 
 .dnd-touch-fix {
-    touch-action: none;
+    /* touch-action: none; */
     -webkit-touch-callout: none;
     -webkit-user-select: none;
     user-select: none;
