@@ -246,7 +246,7 @@ export default function StartWorkoutPage({ params }: { params: Promise<{ id: str
     };
 
     return (
-        <main className='min-h-screen bg-[#161619] flex flex-col'>
+        <main className='min-h-screen bg-[#161619] flex flex-col overflow-hidden'>
             {/* Header com gradiente e efeito de blur */}
             <header className="sticky top-0 z-20 backdrop-blur-lg bg-gradient-to-b from-[#18181b] to-[#18181b]/95 border-b border-zinc-800">
                 <div className="max-w-4xl mx-auto px-4 h-14 flex items-center justify-between">
@@ -268,7 +268,7 @@ export default function StartWorkoutPage({ params }: { params: Promise<{ id: str
             </header>
 
             {/* Container principal com scroll */}
-            <div className="flex-1 overflow-y-auto pb-32">
+            <div className="flex-1 overflow-y-auto pb-32 -webkit-overflow-scrolling-touch">
                 {/* Lista de exercícios */}
                 <div className="max-w-4xl mx-auto px-4 py-6 space-y-4 bg-[#161619]">
                     {isSuccess && data ? (
@@ -497,7 +497,7 @@ export default function StartWorkoutPage({ params }: { params: Promise<{ id: str
             </div>
 
             {/* Fixed Bottom Bar */}
-            <div className="fixed bottom-0 left-0 right-0 bg-[#18181b]/95 backdrop-blur-lg border-t border-zinc-800">
+            <div className="fixed bottom-0 left-0 right-0 bg-[#18181b]/95 backdrop-blur-lg border-t border-zinc-800 z-10">
                 <div className="max-w-4xl mx-auto px-4 py-3">
                     {/* Progress Bar */}
                     <div className="flex items-center justify-between mb-3">
