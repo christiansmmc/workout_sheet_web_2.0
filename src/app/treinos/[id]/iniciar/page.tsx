@@ -268,7 +268,7 @@ export default function StartWorkoutPage({ params }: { params: Promise<{ id: str
             </header>
 
             {/* Container principal com scroll */}
-            <div className="flex-1 overflow-y-auto">
+            <div className="flex-1 overflow-y-auto pb-32">
                 {/* Lista de exercícios */}
                 <div className="max-w-4xl mx-auto px-4 py-6 space-y-4 bg-[#161619]">
                     {isSuccess && data ? (
@@ -497,7 +497,7 @@ export default function StartWorkoutPage({ params }: { params: Promise<{ id: str
             </div>
 
             {/* Fixed Bottom Bar */}
-            <div className="sticky bottom-0 left-0 right-0 bg-[#18181b]/95 backdrop-blur-lg border-t border-zinc-800">
+            <div className="fixed bottom-0 left-0 right-0 bg-[#18181b]/95 backdrop-blur-lg border-t border-zinc-800">
                 <div className="max-w-4xl mx-auto px-4 py-3">
                     {/* Progress Bar */}
                     <div className="flex items-center justify-between mb-3">
