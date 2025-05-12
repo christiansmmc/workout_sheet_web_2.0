@@ -51,7 +51,7 @@ export default function Page({ params }: { params: Promise<{ id: string }> }) {
             </header>
 
             {/* Container principal com scroll */}
-            <div className="flex-1 overflow-y-auto pb-24 -webkit-overflow-scrolling-touch">
+            <div className="flex-1 overflow-y-auto pb-24 ios-scroll-fix">
                 {/* Lista de exercícios */}
                 <div className="max-w-4xl mx-auto px-4 py-6 space-y-4 bg-[#161619]">
                     {isSuccess && data ? (

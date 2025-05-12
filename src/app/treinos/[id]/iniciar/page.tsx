@@ -268,7 +268,7 @@ export default function StartWorkoutPage({ params }: { params: Promise<{ id: str
             </header>
 
             {/* Container principal com scroll */}
-            <div className="flex-1 overflow-y-auto pb-32 -webkit-overflow-scrolling-touch">
+            <div className="flex-1 overflow-y-auto pb-32 ios-scroll-fix">
                 {/* Lista de exercícios */}
                 <div className="max-w-4xl mx-auto px-4 py-6 space-y-4 bg-[#161619]">
                     {isSuccess && data ? (

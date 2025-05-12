@@ -91,3 +91,9 @@
 ::-webkit-scrollbar-thumb:hover {
     background: rgba(113, 113, 122, 0.8);
 }
+
+/* Corrige scroll nativo no iOS */
+.ios-scroll-fix {
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+}
