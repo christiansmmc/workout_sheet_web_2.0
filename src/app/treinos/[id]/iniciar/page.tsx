@@ -513,26 +513,19 @@ export default function StartWorkoutPage({ params }: { params: Promise<{ id: str
                         <span className="text-sm text-zinc-400">Progresso do treino</span>
                         <span className="text-sm font-medium text-zinc-300">{progressPercentage}%</span>
                     </div>
-                    <div className="w-full h-2 bg-zinc-800/50 rounded-full overflow-hidden mb-4">
+                    <div className="w-full h-2 bg-zinc-800/50 rounded-full overflow-hidden">
                         <div
                             className="bg-red-500 h-full transition-all duration-300 ease-out"
                             style={{ width: `${progressPercentage}%` }}
                         />
                     </div>
 
-                    {/* Action Buttons */}
-                    <div className="flex items-center gap-3">
-                        <button
-                            onClick={handleCancel}
-                            className="w-32 py-3 rounded-xl bg-zinc-800/50 hover:bg-zinc-700/50 transition-colors"
-                        >
-                            <span className="font-medium">Cancelar</span>
-                        </button>
+                    {/* Finish Button - Only shows at 100% */}
+                    {progressPercentage === 100 && (
                         <button
                             onClick={finishWorkout}
-                            disabled={isSubmitting || !areAllExercisesDecided}
-                            className={`flex-1 py-3 rounded-xl bg-red-500 hover:bg-red-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors ${isSubmitting ? 'opacity-70' : ''
-                                }`}
+                            disabled={isSubmitting}
+                            className={`w-full mt-4 py-3 rounded-xl bg-red-500 hover:bg-red-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors ${isSubmitting ? 'opacity-70' : ''}`}
                         >
                             {isSubmitting ? (
                                 <span className="flex items-center justify-center gap-2">
@@ -543,7 +536,7 @@ export default function StartWorkoutPage({ params }: { params: Promise<{ id: str
                                 <span className="font-medium">Concluir treino</span>
                             )}
                         </button>
-                    </div>
+                    )}
                 </div>
             </div>
 
