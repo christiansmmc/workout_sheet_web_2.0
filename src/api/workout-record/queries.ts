@@ -1,6 +1,6 @@
-import { WorkoutRecordRequest, WorkoutRecord } from "@/api/interfaces/workout";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { WorkoutRecordRequest } from "@/api/interfaces/workout";
 import { createWorkoutRecordRequest, getLastWorkoutRecordByWorkoutId } from "@/api/workout-record/api";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 
 export const useCreateWorkoutRecord = () => {
@@ -9,7 +9,6 @@ export const useCreateWorkoutRecord = () => {
     return useMutation({
         mutationFn: async (payload: WorkoutRecordRequest) => {
             const response = await createWorkoutRecordRequest(payload);
-            console.log('API response for create workout record:', response);
             return response;
         }
     });
@@ -20,10 +19,9 @@ export const useGetLastWorkoutRecord = (workoutId: number) => {
         queryKey: ['lastWorkoutRecord', workoutId],
         queryFn: async () => {
             const response = await getLastWorkoutRecordByWorkoutId(workoutId);
-            console.log('API response for last workout record:', response);
             return response;
         },
         select: (response) => response.data,
-        enabled: !!workoutId // Só executa a query se workoutId estiver definido
+        enabled: !!workoutId
     });
 };

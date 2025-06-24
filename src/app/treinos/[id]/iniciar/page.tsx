@@ -1,22 +1,22 @@
 "use client";
 
-import React, { useState } from 'react';
-import { ArrowLeft, User, CheckCircle, ChevronDown, ChevronUp, RotateCcw, AlertCircle, Ban, TrendingUp, TrendingDown, ArrowRight } from 'lucide-react';
-import { useRouter } from 'next/navigation';
-import { BeatLoader } from 'react-spinners';
-import { capitalizeAllWords } from '@/utils/stringUtils';
-import { useGetExercisesFromWorkoutQuery } from '@/api/workout/queries';
-import { useCreateWorkoutRecord, useGetLastWorkoutRecord } from '@/api/workout-record/queries';
 import { WorkoutRecord } from '@/api/interfaces/workout';
-import ActionButton from '@/components/button/actionButton';
+import { useCreateWorkoutRecord, useGetLastWorkoutRecord } from '@/api/workout-record/queries';
+import { useGetExercisesFromWorkoutQuery } from '@/api/workout/queries';
 import WorkoutComparisonSummary from '@/components/card/workoutComparisonSummary';
+import WorkoutHistoryModal from '@/components/modal/workoutHistoryModal';
 import {
     Dialog,
     DialogContent,
     DialogHeader,
-    DialogTitle,
     DialogOverlay,
+    DialogTitle,
 } from '@/components/ui/dialog';
+import { capitalizeAllWords } from '@/utils/stringUtils';
+import { AlertCircle, ArrowLeft, ArrowRight, Ban, CheckCircle, ChevronDown, ChevronUp, History, RotateCcw } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import React, { useState } from 'react';
+import { BeatLoader } from 'react-spinners';
 
 // Map of body part names to background colors
 const bodyPartColors: Record<string, string> = {
@@ -48,7 +48,7 @@ export default function StartWorkoutPage({ params }: { params: Promise<{ id: str
     // Fetch workout exercises data
     const { isSuccess, data } = useGetExercisesFromWorkoutQuery(workoutId);
 
-    // Query to get the last workout record for comparison
+    // Query to get the last workout record for comparison (apenas para outras funcionalidades)
     const { data: lastWorkoutRecord } = useGetLastWorkoutRecord(Number(workoutId));
 
     // Mutation for creating workout record
@@ -65,6 +65,7 @@ export default function StartWorkoutPage({ params }: { params: Promise<{ id: str
     const [workoutCompleteModalOpen, setWorkoutCompleteModalOpen] = useState(false);
     const [showWorkoutSummary, setShowWorkoutSummary] = useState(false);
     const [newWorkoutRecord, setNewWorkoutRecord] = useState<any>(null);
+    const [historyModalOpen, setHistoryModalOpen] = useState(false);
 
     // Initialize tracking state when data is loaded
     React.useEffect(() => {
@@ -273,6 +274,15 @@ export default function StartWorkoutPage({ params }: { params: Promise<{ id: str
                             {isSuccess && data ? `${data.workoutExercises.length} exercícios` : '...'}
                         </span>
                     </div>
+
+                    {/* Botão de histórico */}
+                    <button
+                        onClick={() => setHistoryModalOpen(true)}
+                        className="p-2 rounded-lg bg-zinc-800/50 hover:bg-zinc-700/50 transition-colors ml-2"
+                        aria-label="Ver histórico do último treino"
+                    >
+                        <History size={18} className="text-zinc-400 hover:text-zinc-300" />
+                    </button>
                 </div>
             </header>
 
@@ -664,7 +674,7 @@ export default function StartWorkoutPage({ params }: { params: Promise<{ id: str
                 }}>
                 <DialogOverlay className="fixed inset-0 bg-black bg-opacity-70 backdrop-blur-sm" />
                 <DialogContent
-                    className="w-[95%] max-h-[90vh] overflow-y-auto rounded-lg sm:max-w-[600px] bg-zinc-900 border-0 shadow-lg"
+                    className="w-[95%] max-h-[90vh] overflow-y-auto rounded-lg sm:max-w-[600px] bg-zinc-900 border-0 shadow-lg p-2"
                 >
                     <DialogHeader className="px-4 pt-6 pb-2">
                         <DialogTitle className="text-xl font-bold mb-2">Resumo Comparativo</DialogTitle>
@@ -688,6 +698,13 @@ export default function StartWorkoutPage({ params }: { params: Promise<{ id: str
                     </div>
                 </DialogContent>
             </Dialog>
+
+            {/* History Modal */}
+            <WorkoutHistoryModal
+                isOpen={historyModalOpen}
+                onClose={() => setHistoryModalOpen(false)}
+                workoutId={workoutId}
+            />
         </main>
     );
 }

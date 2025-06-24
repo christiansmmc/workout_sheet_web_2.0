@@ -1,18 +1,20 @@
 "use client";
 
-import React, { useEffect } from 'react';
-import { ArrowLeft, Play } from 'lucide-react';
-import { useRouter } from 'next/navigation';
-import { BeatLoader } from 'react-spinners';
-import ExerciseCard from '@/components/card/exerciseCard';
 import { useGetExercisesFromWorkoutQuery } from '@/api/workout/queries';
-import ActionButton from '@/components/button/actionButton';
+import ExerciseCard from '@/components/card/exerciseCard';
+import WorkoutHistoryModal from '@/components/modal/workoutHistoryModal';
+import { ArrowLeft, History, Play } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import React, { useEffect, useState } from 'react';
+import { BeatLoader } from 'react-spinners';
 
 export default function Page({ params }: { params: Promise<{ id: string }> }) {
     const router = useRouter();
     const unwrappedParams = React.use(params);
 
     const { isSuccess, data, isError } = useGetExercisesFromWorkoutQuery(unwrappedParams.id);
+
+    const [historyModalOpen, setHistoryModalOpen] = useState(false);
 
     useEffect(() => {
         if (isError) {
@@ -56,6 +58,15 @@ export default function Page({ params }: { params: Promise<{ id: string }> }) {
                             {isSuccess && data ? `${data.workoutExercises.length} exercícios` : '...'}
                         </span>
                     </div>
+
+                    {/* Botão de histórico */}
+                    <button
+                        onClick={() => setHistoryModalOpen(true)}
+                        className="p-2 rounded-lg bg-zinc-800/50 hover:bg-zinc-700/50 transition-colors ml-2"
+                        aria-label="Ver histórico do último treino"
+                    >
+                        <History size={18} className="text-zinc-400 hover:text-zinc-300" />
+                    </button>
                 </div>
             </header>
 
@@ -108,6 +119,13 @@ export default function Page({ params }: { params: Promise<{ id: string }> }) {
                     </div>
                 </div>
             )}
+
+            {/* History Modal */}
+            <WorkoutHistoryModal
+                isOpen={historyModalOpen}
+                onClose={() => setHistoryModalOpen(false)}
+                workoutId={unwrappedParams.id}
+            />
         </main>
     );
 }
