@@ -1,5 +1,5 @@
 import React from 'react';
-import { CheckCircle, TrendingUp, TrendingDown, AlertCircle } from 'lucide-react';
+import { CheckCircle, TrendingUp, TrendingDown } from 'lucide-react';
 import { capitalizeAllWords } from '@/utils/stringUtils';
 import { WorkoutRecord } from '@/api/interfaces/workout';
 import { formatNumberBR } from '@/utils/numberUtils';
@@ -12,517 +12,406 @@ export interface WorkoutComparisonSummaryProps {
 
 // Interface para os itens de comparação
 interface ExerciseComparison {
-    type: 'added' | 'removed' | 'performance' | 'status' | 'loadSuggestion';
+    type: 'performance' | 'status' | 'load';
     exerciseName: string;
     bodyPart: string;
-    repsDiff?: number;
-    repsPercentChange?: number;
-    weightDiff?: number;
-    weightPercentChange?: number;
+    lastReps?: number[];
+    currentReps?: number[];
+    lastLoad?: number;
+    currentLoad?: number;
     lastStatus?: string;
     currentStatus?: string;
-    // Campos adicionais para análise mais detalhada
-    avgRepsPerSetBefore?: number;
-    avgRepsPerSetAfter?: number;
-    avgRepsPerSetDiff?: number;
-    // Campos para recomendações de carga
-    suggestedLoadChange?: number;
-    suggestedLoadChangePercentage?: number;
-    currentLoad?: number;
-    repsSummary?: number[];
-    suggestionReason?: string;
 }
 
-// Definição de tipos para as seções de comparação
-interface ComparisonSection {
-    type: ExerciseComparison['type'];
-    items: ExerciseComparison[];
-    title: string;
-    borderColor: string;
-    textColor: string;
-    bgColor: string;
-}
+// Mapa de cores dos músculos
+const BODY_PART_COLORS: Record<string, string> = {
+    PEITO: 'bg-teal-500',
+    TRICEPS: 'bg-blue-500',
+    OMBRO: 'bg-emerald-500',
+    PERNA: 'bg-amber-500',
+    COSTAS: 'bg-pink-500',
+    BICEPS: 'bg-violet-500',
+};
+
+// Configuração das seções
+const SECTION_CONFIG = {
+    performance: {
+        title: 'Mudanças nas Repetições',
+        borderColor: 'border-blue-500',
+        textColor: 'text-blue-500',
+    },
+    load: {
+        title: 'Mudanças na Carga',
+        borderColor: 'border-emerald-500',
+        textColor: 'text-emerald-500',
+    },
+    status: {
+        title: 'Mudanças de Status',
+        borderColor: 'border-violet-500',
+        textColor: 'text-violet-500',
+    },
+} as const;
+
+// Função auxiliar para verificar se há repetições válidas
+const hasValidReps = (reps: number[] | undefined): boolean => {
+    return Boolean(reps?.length && reps.some(rep => rep > 0));
+};
+
+// Função auxiliar para verificar diferença significativa nas repetições
+const hasSignificantRepChange = (lastReps: number[], currentReps: number[]): boolean => {
+    return lastReps.some((reps, index) => {
+        const currentRep = currentReps[index] || 0;
+        return Math.abs(currentRep - reps) >= 3;
+    });
+};
 
 export default function WorkoutComparisonSummary({ lastWorkout, currentWorkout }: WorkoutComparisonSummaryProps) {
-    // Map to hold differences between workouts
-    const exerciseComparisons = React.useMemo(() => {
+    // Função para processar comparações de exercícios
+    const processExerciseComparisons = React.useCallback(() => {
         if (!lastWorkout?.workoutRecordExercises || !currentWorkout?.workoutRecordExercises) {
             return [];
         }
 
         const comparisons: ExerciseComparison[] = [];
+        
+        // Criar mapas para facilitar a comparação
+        const lastExercisesMap = new Map(
+            lastWorkout.workoutRecordExercises.map(ex => [ex.exercise.id, ex])
+        );
+        
+        const currentExercisesMap = new Map(
+            currentWorkout.workoutRecordExercises.map(ex => [ex.exercise.id, ex])
+        );
 
-        try {
-            // Get all exercises from both workouts
-            const lastExercises = lastWorkout.workoutRecordExercises || [];
-            const currentExercises = currentWorkout.workoutRecordExercises || [];
+        // Comparar apenas exercícios que existem em ambos os treinos
+        Array.from(currentExercisesMap.keys()).forEach(exerciseId => {
+            const currentEx = currentExercisesMap.get(exerciseId);
+            const lastEx = lastExercisesMap.get(exerciseId);
+            
+            if (!lastEx || !currentEx) return;
 
-            // Map exercises by ID for easier comparison
-            const lastExercisesMap = new Map(
-                lastExercises.map(ex => [ex.exercise.id, ex])
-            );
+            const baseComparison = {
+                exerciseName: currentEx.exercise.name,
+                bodyPart: currentEx.exercise.bodyPart,
+            };
 
-            const currentExercisesMap = new Map(
-                currentExercises.map(ex => [ex.exercise.id, ex])
-            );
+            // Verificar mudança de status
+            if (lastEx.status !== currentEx.status) {
+                comparisons.push({
+                    ...baseComparison,
+                    type: 'status',
+                    lastStatus: lastEx.status,
+                    currentStatus: currentEx.status,
+                });
+            }
 
-            // Find all exercise IDs from both workouts
-            const allExerciseIds = new Set([
-                ...Array.from(lastExercisesMap.keys()),
-                ...Array.from(currentExercisesMap.keys())
-            ]);
-
-            // Compare each exercise
-            Array.from(allExerciseIds).forEach(exerciseId => {
-                const lastEx = lastExercisesMap.get(exerciseId);
-                const currentEx = currentExercisesMap.get(exerciseId);
-
-                // Different cases to handle
-                if (!lastEx && currentEx) {
-                    // New exercise added
+            // Comparar apenas exercícios completados
+            if (lastEx.status === 'COMPLETED' && currentEx.status === 'COMPLETED') {
+                const lastSets = lastEx.workoutRecordExerciseSets || [];
+                const currentSets = currentEx.workoutRecordExerciseSets || [];
+                
+                const lastReps = lastSets.map((set: any) => set.reps || 0);
+                const currentReps = currentSets.map((set: any) => set.reps || 0);
+                
+                // Verificar mudanças nas repetições
+                if (hasValidReps(lastReps) && hasValidReps(currentReps) && 
+                    hasSignificantRepChange(lastReps, currentReps)) {
                     comparisons.push({
-                        type: 'added',
-                        exerciseName: currentEx.exercise.name,
-                        bodyPart: currentEx.exercise.bodyPart
+                        ...baseComparison,
+                        type: 'performance',
+                        lastReps,
+                        currentReps,
                     });
-                } else if (lastEx && !currentEx) {
-                    // Exercise removed
+                }
+
+                // Verificar mudanças na carga
+                const lastLoad = lastSets[0]?.exerciseLoad || 0;
+                const currentLoad = currentSets[0]?.exerciseLoad || 0;
+                
+                if (lastLoad > 0 && currentLoad > 0 && lastLoad !== currentLoad) {
                     comparisons.push({
-                        type: 'removed',
-                        exerciseName: lastEx.exercise.name,
-                        bodyPart: lastEx.exercise.bodyPart
+                        ...baseComparison,
+                        type: 'load',
+                        lastLoad,
+                        currentLoad,
                     });
-                } else if (lastEx && currentEx) {
-                    // Exercise exists in both - compare performance
-                    const lastSets = lastEx.workoutRecordExerciseSets || [];
-                    const currentSets = currentEx.workoutRecordExerciseSets || [];
-
-                    // Verificar se houve mudança de status
-                    const statusChanged = lastEx.status !== currentEx.status;
-
-                    // Verificar se ambos os exercícios têm sets para comparar
-                    const hasLastSets = lastSets.length > 0 && lastEx.status === 'COMPLETED';
-                    const hasCurrentSets = currentSets.length > 0 && currentEx.status === 'COMPLETED';
-                    const canComparePerformance = hasLastSets && hasCurrentSets;
-
-                    if (statusChanged) {
-                        // Se o status mudou, registra como mudança de status
-                        comparisons.push({
-                            type: 'status',
-                            exerciseName: currentEx.exercise.name,
-                            bodyPart: currentEx.exercise.bodyPart,
-                            lastStatus: lastEx.status,
-                            currentStatus: currentEx.status
-                        });
-                    } else if (canComparePerformance) {
-                        // Só compara performance se ambos têm sets registrados e são COMPLETED
-                        // Calculate totals for comparison
-                        const lastTotalReps = lastSets.reduce((sum, set) => sum + (set.reps || 0), 0);
-                        const currentTotalReps = currentSets.reduce((sum, set) => sum + (set.reps || 0), 0);
-
-                        const lastTotalWeight = lastSets.reduce((sum, set) => sum + ((set.reps || 0) * (set.exerciseLoad || 0)), 0);
-                        const currentTotalWeight = currentSets.reduce((sum, set) => sum + ((set.reps || 0) * (set.exerciseLoad || 0)), 0);
-
-                        // Calculate per-set averages for more detailed analysis
-                        const avgRepsPerSetBefore = lastSets.length ? lastTotalReps / lastSets.length : 0;
-                        const avgRepsPerSetAfter = currentSets.length ? currentTotalReps / currentSets.length : 0;
-                        const avgRepsPerSetDiff = avgRepsPerSetAfter - avgRepsPerSetBefore;
-
-                        // Calculate percentage changes
-                        const repsDiff = currentTotalReps - lastTotalReps;
-                        const repsPercentChange = lastTotalReps ? (repsDiff / lastTotalReps) * 100 : 0;
-
-                        const weightDiff = currentTotalWeight - lastTotalWeight;
-                        const weightPercentChange = lastTotalWeight ? (weightDiff / lastTotalWeight) * 100 : 0;
-
-                        // Only show significant changes (more than 5%)
-                        if (Math.abs(repsPercentChange) >= 5 || Math.abs(weightPercentChange) >= 5) {
-                            comparisons.push({
-                                type: 'performance',
-                                exerciseName: currentEx.exercise.name,
-                                bodyPart: currentEx.exercise.bodyPart,
-                                repsDiff,
-                                repsPercentChange,
-                                weightDiff,
-                                weightPercentChange,
-                                avgRepsPerSetBefore,
-                                avgRepsPerSetAfter,
-                                avgRepsPerSetDiff
-                            });
-                        }
-                    }
                 }
-            });
-
-            // Adicionar lógica para gerar recomendações de carga
-            // Analisa os exercícios do treino atual
-            currentWorkout.workoutRecordExercises.forEach(exercise => {
-                // Só analisamos exercícios que foram completados
-                if (exercise.status === 'COMPLETED' && exercise.workoutRecordExerciseSets.length > 0) {
-                    const sets = exercise.workoutRecordExerciseSets;
-                    const repsBySet = sets.map(set => set.reps).sort((a, b) => b - a); // Ordem decrescente
-                    const exerciseLoad = sets[0]?.exerciseLoad || 0;
-
-                    // Se não houver carga, não faz sentido recomendar alterações
-                    if (exerciseLoad <= 0) return;
-
-                    // Recomendações baseadas na análise das repetições
-                    let suggestion: ExerciseComparison | null = null;
-
-                    // Análise para aumento de carga
-                    if (repsBySet.length >= 3) {
-                        // Critério para aumento: conseguir fazer pelo menos 8 repetições em todas as séries
-                        // E pelo menos uma das séries com repetições próximas ao objetivo (10+)
-                        const minReps = Math.min(...repsBySet);
-                        const maxReps = Math.max(...repsBySet);
-
-                        if (minReps >= 8 && maxReps >= 10) {
-                            // Recomendar aumento adaptativo na carga
-                            // Usa porcentagem maior se performance for muito boa (12+ reps)
-                            const percentIncrease = maxReps >= 12 ? 7.5 : 5;
-                            const suggestedLoadIncrease = (exerciseLoad * percentIncrease / 100);
-
-                            suggestion = {
-                                type: 'loadSuggestion',
-                                exerciseName: exercise.exercise.name,
-                                bodyPart: exercise.exercise.bodyPart,
-                                suggestedLoadChange: suggestedLoadIncrease,
-                                suggestedLoadChangePercentage: percentIncrease,
-                                currentLoad: exerciseLoad,
-                                repsSummary: repsBySet,
-                                suggestionReason: "aumento"
-                            };
-                        }
-                        // Critério para diminuição: adaptativo também
-                        else if (minReps < 6) {
-                            // Recomendação adaptativa para redução
-                            // Redução maior se performance for muito abaixo do esperado
-                            const percentDecrease = minReps <= 3 ? -10 : -5;
-                            const suggestedLoadDecrease = (exerciseLoad * Math.abs(percentDecrease) / 100);
-
-                            suggestion = {
-                                type: 'loadSuggestion',
-                                exerciseName: exercise.exercise.name,
-                                bodyPart: exercise.exercise.bodyPart,
-                                suggestedLoadChange: -suggestedLoadDecrease,
-                                suggestedLoadChangePercentage: percentDecrease,
-                                currentLoad: exerciseLoad,
-                                repsSummary: repsBySet,
-                                suggestionReason: "redução"
-                            };
-                        }
-                    }
-
-                    if (suggestion) {
-                        comparisons.push(suggestion);
-                    }
-                }
-            });
-
-        } catch (error) {
-            console.error('Error in workout comparison:', error);
-        }
+            }
+        });
 
         return comparisons;
     }, [lastWorkout, currentWorkout]);
 
-    // Group comparisons by type for better display
-    const addedExercises = exerciseComparisons.filter(c => c.type === 'added');
-    const removedExercises = exerciseComparisons.filter(c => c.type === 'removed');
-    const performanceChanges = exerciseComparisons.filter(c => c.type === 'performance');
-    const statusChanges = exerciseComparisons.filter(c => c.type === 'status');
-    const loadSuggestions = exerciseComparisons.filter(c => c.type === 'loadSuggestion');
+    const exerciseComparisons = React.useMemo(processExerciseComparisons, [processExerciseComparisons]);
 
-    // Organizando as comparações em ordem de relevância para melhor experiência do usuário
-    const orderedComparisonSections = React.useMemo(() => {
-        const sections: ComparisonSection[] = [];
+    // Agrupar comparações por tipo
+    const groupedComparisons = React.useMemo(() => {
+        const grouped = {
+            performance: exerciseComparisons.filter(c => c.type === 'performance'),
+            status: exerciseComparisons.filter(c => c.type === 'status'),
+            load: exerciseComparisons.filter(c => c.type === 'load'),
+        };
 
-        // Primeiro as sugestões de carga (mais acionáveis)
-        if (loadSuggestions.length > 0) {
-            sections.push({
-                type: 'loadSuggestion',
-                items: loadSuggestions,
-                title: 'Sugestões de Carga',
-                borderColor: 'border-cyan-500',
-                textColor: 'text-cyan-500',
-                bgColor: 'bg-cyan-500/20'
-            });
-        }
+        const totalChanges = Object.values(grouped).reduce((sum, arr) => sum + arr.length, 0);
+        
+        return { ...grouped, totalChanges };
+    }, [exerciseComparisons]);
 
-        // Segundo as mudanças de performance (mostram progresso)
-        if (performanceChanges.length > 0) {
-            sections.push({
-                type: 'performance',
-                items: performanceChanges,
-                title: 'Mudanças de Performance',
-                borderColor: 'border-blue-500',
-                textColor: 'text-blue-500',
-                bgColor: 'bg-blue-500/20'
-            });
-        }
-
-        // Terceiro as mudanças de status
-        if (statusChanges.length > 0) {
-            sections.push({
-                type: 'status',
-                items: statusChanges,
-                title: 'Mudanças de Status',
-                borderColor: 'border-violet-500',
-                textColor: 'text-violet-500',
-                bgColor: 'bg-violet-500/20'
-            });
-        }
-
-        // Quarto exercícios adicionados/removidos
-        if (addedExercises.length > 0) {
-            sections.push({
-                type: 'added',
-                items: addedExercises,
-                title: 'Exercícios Adicionados',
-                borderColor: 'border-green-500',
-                textColor: 'text-green-500',
-                bgColor: 'bg-green-500/20'
-            });
-        }
-
-        if (removedExercises.length > 0) {
-            sections.push({
-                type: 'removed',
-                items: removedExercises,
-                title: 'Exercícios Removidos',
-                borderColor: 'border-amber-500',
-                textColor: 'text-amber-500',
-                bgColor: 'bg-amber-500/20'
-            });
-        }
-
-        return sections;
-    }, [loadSuggestions, performanceChanges, statusChanges, addedExercises, removedExercises]);
-
-    // Componentes internos para melhorar a legibilidade
-    const SectionHeader = ({ title, color, count }: { title: string, color: string, count: number }) => (
+    // Componentes internos
+    const SectionHeader = React.useCallback(({ title, color, count }: { title: string, color: string, count: number }) => (
         <h3 className={`font-medium ${color} flex items-center gap-2 mb-3`}>
             <span>{title}</span>
             <span className={`bg-${color.replace('text-', '')}/20 ${color} text-xs py-1 px-2 rounded-full`}>
                 {count}
             </span>
         </h3>
-    );
+    ), []);
 
-    const ExerciseHeader = ({ name, bodyPart }: { name: string, bodyPart: string }) => (
+    const ExerciseHeader = React.useCallback(({ name, bodyPart }: { name: string, bodyPart: string }) => (
         <div className="flex items-center gap-2 mb-1">
             <span className="font-medium">{capitalizeAllWords(name)}</span>
-            <span className="text-xs px-2 py-0.5 rounded-full bg-zinc-700 text-zinc-300">
+            <span className={`text-xs px-2 py-0.5 rounded-full ${BODY_PART_COLORS[bodyPart] || 'bg-zinc-600'} text-zinc-100`}>
                 {bodyPart}
             </span>
         </div>
-    );
+    ), []);
 
-    const NoChangesSection = () => (
-        <div className="bg-zinc-800/50 rounded-lg p-6 flex flex-col items-center justify-center">
-            <div className="mb-4 p-4 rounded-full bg-zinc-700/50">
-                <CheckCircle size={32} className="text-green-500" />
-            </div>
-            <h3 className="text-lg font-medium mb-2">Sem mudanças significativas</h3>
-            <p className="text-zinc-400 text-sm text-center">
-                Não foram encontradas mudanças significativas entre este treino e o anterior.
-                Continue mantendo a consistência!
-            </p>
-        </div>
-    );
-
-    return (
-        <div className="flex flex-col gap-6">
-            {/* Summary header */}
-            <div className="bg-zinc-800 rounded-lg p-4">
-                <h3 className="font-medium text-lg mb-2">Visão Geral</h3>
-                <p className="text-zinc-300 text-sm">
-                    {exerciseComparisons.length === 0 ?
-                        "Não foram encontradas mudanças significativas entre os treinos." :
-                        `Encontramos ${exerciseComparisons.length} mudanças entre seu treino atual e anterior.`
-                    }
-                </p>
-            </div>
-
-            {/* Render sections in priority order */}
-            {orderedComparisonSections.map((section, idx) => {
-                // Container comum para todas as seções
-                const SectionContainer = ({ children }: { children: React.ReactNode }) => (
-                    <div key={`section-${idx}`} className={`border-l-4 ${section.borderColor} bg-zinc-800/50 rounded-r-lg p-4`}>
-                        <SectionHeader
-                            title={section.title}
-                            color={section.textColor}
-                            count={section.items.length}
-                        />
-                        {children}
+    const RepetitionsSection = React.useCallback(({ items }: { items: ExerciseComparison[] }) => (
+        <div className="space-y-3">
+            {items.map((ex, idx) => {
+                // Calcular total de repetições
+                const lastTotal = ex.lastReps?.reduce((sum, reps) => sum + reps, 0) || 0;
+                const currentTotal = ex.currentReps?.reduce((sum, reps) => sum + reps, 0) || 0;
+                const repsDiff = currentTotal - lastTotal;
+                const isIncrease = repsDiff > 0;
+                
+                return (
+                    <div key={`perf-${idx}`} className="bg-zinc-800/30 rounded-lg p-3 border border-zinc-700/50">
+                        <ExerciseHeader name={ex.exerciseName} bodyPart={ex.bodyPart} />
+                        
+                        <div className="mt-3 space-y-3">
+                            {/* Treino anterior */}
+                            <div className="space-y-2">
+                                <div className="flex items-center gap-2">
+                                    <div className="w-2 h-2 bg-zinc-500 rounded-full"></div>
+                                    <span className="text-sm font-medium text-zinc-400">Treino anterior</span>
+                                </div>
+                                <div className="flex flex-wrap gap-2">
+                                    {ex.lastReps?.map((reps, i) => (
+                                        <div key={i} className="flex items-center justify-center min-w-[36px] h-8 px-2 text-sm font-medium bg-zinc-700/60 border border-zinc-600/50 rounded-md">
+                                            {reps}
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                            
+                            {/* Treino atual */}
+                            <div className="space-y-2">
+                                <div className="flex items-center gap-2">
+                                    <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                                    <span className="text-sm font-medium text-blue-400">Treino atual</span>
+                                </div>
+                                <div className="flex flex-wrap gap-2">
+                                    {ex.currentReps?.map((reps, i) => (
+                                        <div key={i} className="flex items-center justify-center min-w-[36px] h-8 px-2 text-sm font-medium bg-blue-500/20 border border-blue-500/30 rounded-md text-blue-100">
+                                            {reps}
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                            
+                            {/* Comparação total */}
+                            <div className="bg-zinc-700/30 rounded-lg p-3 mt-3">
+                                <div className="flex items-start justify-between mb-3">
+                                    <div className="text-center flex-1">
+                                        <div className="text-xs text-zinc-400 mb-1">Total anterior</div>
+                                        <div className="text-lg font-semibold text-zinc-300">
+                                            {lastTotal}
+                                            <span className="text-sm text-zinc-500 ml-1">reps</span>
+                                        </div>
+                                    </div>
+                                    
+                                    <div className="text-center flex-1">
+                                        <div className="text-xs text-zinc-400 mb-1">Total atual</div>
+                                        <div className="text-lg font-semibold text-white">
+                                            {currentTotal}
+                                            <span className="text-sm text-zinc-400 ml-1">reps</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div className="flex justify-center">
+                                    <div className={`flex items-center gap-2 px-3 py-2 rounded-lg ${isIncrease 
+                                        ? 'bg-green-500/20 border border-green-500/30' 
+                                        : 'bg-red-500/20 border border-red-500/30'}`}>
+                                        {isIncrease ? (
+                                            <TrendingUp size={16} className="text-green-400" />
+                                        ) : (
+                                            <TrendingDown size={16} className="text-red-400" />
+                                        )}
+                                        <span className={`text-sm font-semibold ${isIncrease ? 'text-green-300' : 'text-red-300'}`}>
+                                            {isIncrease ? '+' : ''}
+                                            {repsDiff} reps
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 );
-
-                // Rendering different section types
-                if (section.type === 'added' || section.type === 'removed') {
-                    // Simple list for added/removed exercises
-                    return (
-                        <SectionContainer key={`section-${idx}`}>
-                            <ul className="flex flex-col gap-2">
-                                {section.items.map((ex, itemIdx) => (
-                                    <li key={`${section.type}-${itemIdx}`} className="flex items-center gap-2">
-                                        <div className={`w-2 h-2 rounded-full ${section.textColor}`}></div>
-                                        <ExerciseHeader name={ex.exerciseName} bodyPart={ex.bodyPart} />
-                                    </li>
-                                ))}
-                            </ul>
-                        </SectionContainer>
-                    );
-                } else if (section.type === 'performance') {
-                    // Performance changes with reps and weight comparisons
-                    return (
-                        <SectionContainer key={`section-${idx}`}>
-                            <ul className="flex flex-col gap-4">
-                                {section.items.map((ex, itemIdx) => (
-                                    <li key={`perf-${itemIdx}`} className="flex flex-col gap-1">
-                                        <ExerciseHeader name={ex.exerciseName} bodyPart={ex.bodyPart} />
-
-                                        {/* Reps comparison */}
-                                        <div className="flex items-center gap-2 ml-2">
-                                            {(ex.repsDiff && ex.repsDiff > 0) ? (
-                                                <TrendingUp size={16} className="text-green-500" />
-                                            ) : (
-                                                <TrendingDown size={16} className="text-red-500" />
-                                            )}
-                                            <span className={`text-sm ${(ex.repsDiff && ex.repsDiff > 0) ? 'text-green-500' : 'text-red-500'}`}>
-                                                {ex.repsDiff && ex.repsDiff > 0 ? "+" : ""}{ex.repsDiff || 0} repetições (
-                                                {ex.repsPercentChange && ex.repsPercentChange > 0 ? "+" : ""}
-                                                {formatNumberBR(ex.repsPercentChange)}%)
-                                            </span>
-                                        </div>
-
-                                        {/* Detailed reps per set information */}
-                                        {ex.avgRepsPerSetDiff !== undefined && (
-                                            <div className="flex items-center gap-2 ml-2 mt-1">
-                                                <span className="text-sm text-zinc-400">
-                                                    Média por série: {' '}
-                                                    <span className={`font-medium ${(ex.avgRepsPerSetDiff > 0) ? 'text-green-500' : 'text-red-500'}`}>
-                                                        {formatNumberBR(ex.avgRepsPerSetBefore)} {' → '} {formatNumberBR(ex.avgRepsPerSetAfter)}
-                                                        {' ('}{ex.avgRepsPerSetDiff > 0 ? '+' : ''}{formatNumberBR(ex.avgRepsPerSetDiff)}{')'}
-                                                    </span>
-                                                </span>
-                                            </div>
-                                        )}
-                                    </li>
-                                ))}
-                            </ul>
-                        </SectionContainer>
-                    );
-                } else if (section.type === 'status') {
-                    // Status changes
-                    return (
-                        <SectionContainer key={`section-${idx}`}>
-                            <ul className="flex flex-col gap-3">
-                                {section.items.map((ex, itemIdx) => (
-                                    <li key={`status-${itemIdx}`} className="flex flex-col gap-1">
-                                        <div className="flex items-center gap-2">
-                                            <div className={`w-2 h-2 rounded-full ${section.textColor}`}></div>
-                                            <ExerciseHeader name={ex.exerciseName} bodyPart={ex.bodyPart} />
-                                        </div>
-                                        <div className="mt-1 ml-4 flex items-center gap-1.5">
-                                            <span className={`text-xs px-2 py-0.5 rounded-full ${ex.lastStatus === 'COMPLETED' ? 'bg-green-500/20 text-green-400' : 'bg-amber-500/20 text-amber-400'}`}>
-                                                {ex.lastStatus === 'COMPLETED' ? 'Completado' : 'Pulado'}
-                                            </span>
-                                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-zinc-500">
-                                                <path d="M5 12h14M12 5l7 7-7 7" />
-                                            </svg>
-                                            <span className={`text-xs px-2 py-0.5 rounded-full ${ex.currentStatus === 'COMPLETED' ? 'bg-green-500/20 text-green-400' : 'bg-amber-500/20 text-amber-400'}`}>
-                                                {ex.currentStatus === 'COMPLETED' ? 'Completado' : 'Pulado'}
-                                            </span>
-                                        </div>
-                                    </li>
-                                ))}
-                            </ul>
-                        </SectionContainer>
-                    );
-                } else if (section.type === 'loadSuggestion') {
-                    // Load suggestions
-                    return (
-                        <SectionContainer key={`section-${idx}`}>
-                            <ul className="flex flex-col gap-4">
-                                {section.items.map((ex, itemIdx) => (
-                                    <li key={`load-${itemIdx}`} className="flex flex-col gap-1">
-                                        <ExerciseHeader name={ex.exerciseName} bodyPart={ex.bodyPart} />
-
-                                        <div className="bg-zinc-700/30 rounded-lg p-3">
-                                            {/* Current load info */}
-                                            <div className="flex items-center justify-between mb-2">
-                                                <span className="text-sm text-zinc-400">Carga atual:</span>
-                                                <span className="font-medium">{formatNumberBR(ex.currentLoad, 1)} kg</span>
-                                            </div>
-
-                                            {/* Repetitions summary */}
-                                            <div className="flex items-center justify-between mb-3">
-                                                <span className="text-sm text-zinc-400">Repetições:</span>
-                                                <div className="flex gap-1">
-                                                    {ex.repsSummary?.map((reps, i) => (
-                                                        <span key={i} className={`text-sm px-2 py-0.5 rounded-full ${reps >= 10 ? 'bg-green-500/20 text-green-400' :
-                                                            reps >= 8 ? 'bg-blue-500/20 text-blue-400' :
-                                                                reps >= 6 ? 'bg-amber-500/20 text-amber-400' :
-                                                                    'bg-red-500/20 text-red-400'
-                                                            }`}>
-                                                            {reps}
-                                                        </span>
-                                                    ))}
-                                                </div>
-                                            </div>
-
-                                            {/* Suggestion */}
-                                            <div className="flex items-center justify-between">
-                                                <span className="text-sm text-zinc-400">Sugestão:</span>
-                                                <div className="flex items-center gap-1">
-                                                    {ex.suggestionReason === "aumento" ? (
-                                                        <>
-                                                            <TrendingUp size={16} className="text-green-500" />
-                                                            <span className="text-green-500">
-                                                                +{formatNumberBR(Math.abs(ex.suggestedLoadChangePercentage || 0))}%
-                                                                {' '}({formatNumberBR((ex.currentLoad || 0) + (ex.suggestedLoadChange || 0), 1)} kg)
-                                                            </span>
-                                                        </>
-                                                    ) : (
-                                                        <>
-                                                            <TrendingDown size={16} className="text-amber-500" />
-                                                            <span className="text-amber-500">
-                                                                {formatNumberBR(ex.suggestedLoadChangePercentage)}%
-                                                                {' '}({formatNumberBR((ex.currentLoad || 0) + (ex.suggestedLoadChange || 0), 1)} kg)
-                                                            </span>
-                                                        </>
-                                                    )}
-                                                </div>
-                                            </div>
-
-                                            {/* Explanation */}
-                                            <div className="mt-3 pt-2 border-t border-zinc-700/50 text-xs text-zinc-400">
-                                                {ex.suggestionReason === "aumento" ? (
-                                                    <p>
-                                                        Você está conseguindo boas repetições com a carga atual.
-                                                        Considere aumentar ligeiramente para continuar progredindo.
-                                                    </p>
-                                                ) : (
-                                                    <p>
-                                                        Você está tendo dificuldade com algumas repetições.
-                                                        Uma pequena redução na carga pode melhorar a técnica e prevenir lesões.
-                                                    </p>
-                                                )}
-                                            </div>
-                                        </div>
-                                    </li>
-                                ))}
-                            </ul>
-                        </SectionContainer>
-                    );
-                }
-
-                return null;
             })}
+        </div>
+    ), [ExerciseHeader]);
 
-            {/* No changes section */}
-            {exerciseComparisons.length === 0 && <NoChangesSection />}
+    const LoadSection = React.useCallback(({ items }: { items: ExerciseComparison[] }) => (
+        <div className="space-y-3">
+            {items.map((ex, idx) => (
+                <div key={`load-${idx}`} className="bg-zinc-800/30 rounded-lg p-3 border border-zinc-700/50">
+                    <ExerciseHeader name={ex.exerciseName} bodyPart={ex.bodyPart} />
+                    
+                    <div className="mt-3 bg-zinc-700/30 rounded-lg p-3">
+                        <div className="flex items-start justify-between mb-3">
+                            <div className="text-center flex-1">
+                                <div className="text-xs text-zinc-400 mb-1">Anterior</div>
+                                <div className="text-lg font-semibold text-zinc-300">
+                                    {formatNumberBR(ex.lastLoad || 0)}
+                                    <span className="text-sm text-zinc-500 ml-1">kg</span>
+                                </div>
+                            </div>
+                            
+                            <div className="text-center flex-1">
+                                <div className="text-xs text-zinc-400 mb-1">Atual</div>
+                                <div className="text-lg font-semibold text-white">
+                                    {formatNumberBR(ex.currentLoad || 0)}
+                                    <span className="text-sm text-zinc-400 ml-1">kg</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div className="flex justify-center">
+                            <div className={`flex items-center gap-2 px-3 py-2 rounded-lg ${(ex.currentLoad || 0) > (ex.lastLoad || 0) 
+                                ? 'bg-green-500/20 border border-green-500/30' 
+                                : 'bg-red-500/20 border border-red-500/30'}`}>
+                                {(ex.currentLoad || 0) > (ex.lastLoad || 0) ? (
+                                    <TrendingUp size={16} className="text-green-400" />
+                                ) : (
+                                    <TrendingDown size={16} className="text-red-400" />
+                                )}
+                                <span className={`text-sm font-semibold ${(ex.currentLoad || 0) > (ex.lastLoad || 0) ? 'text-green-300' : 'text-red-300'}`}>
+                                    {(ex.currentLoad || 0) > (ex.lastLoad || 0) ? '+' : ''}
+                                    {formatNumberBR((ex.currentLoad || 0) - (ex.lastLoad || 0))}kg
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            ))}
+        </div>
+    ), [ExerciseHeader]);
+
+    const StatusSection = React.useCallback(({ items }: { items: ExerciseComparison[] }) => (
+        <div className="space-y-3">
+            {items.map((ex, idx) => (
+                <div key={`status-${idx}`} className="bg-zinc-800/30 rounded-lg p-3 border border-zinc-700/50">
+                    <ExerciseHeader name={ex.exerciseName} bodyPart={ex.bodyPart} />
+                    
+                    <div className="mt-3 space-y-3">
+                        <div className={`flex items-center gap-3 p-2.5 rounded-lg ${ex.lastStatus === 'COMPLETED' ? 'bg-green-500/10 border border-green-500/20' : 'bg-amber-500/10 border border-amber-500/20'}`}>
+                            <div className={`w-3 h-3 rounded-full ${ex.lastStatus === 'COMPLETED' ? 'bg-green-500' : 'bg-amber-500'}`}></div>
+                            <div className="flex-1">
+                                <div className="text-xs text-zinc-400 mb-1">Treino anterior</div>
+                                <span className={`text-sm font-medium ${ex.lastStatus === 'COMPLETED' ? 'text-green-400' : 'text-amber-400'}`}>
+                                    {ex.lastStatus === 'COMPLETED' ? 'Completado' : 'Pulado'}
+                                </span>
+                            </div>
+                        </div>
+                        
+                        <div className="flex justify-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-zinc-500">
+                                <path d="M12 5v14M5 12l7 7 7-7" />
+                            </svg>
+                        </div>
+                        
+                        <div className={`flex items-center gap-3 p-2.5 rounded-lg ${ex.currentStatus === 'COMPLETED' ? 'bg-green-500/10 border border-green-500/20' : 'bg-amber-500/10 border border-amber-500/20'}`}>
+                            <div className={`w-3 h-3 rounded-full ${ex.currentStatus === 'COMPLETED' ? 'bg-green-500' : 'bg-amber-500'}`}></div>
+                            <div className="flex-1">
+                                <div className="text-xs text-zinc-400 mb-1">Treino atual</div>
+                                <span className={`text-sm font-medium ${ex.currentStatus === 'COMPLETED' ? 'text-green-400' : 'text-amber-400'}`}>
+                                    {ex.currentStatus === 'COMPLETED' ? 'Completado' : 'Pulado'}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            ))}
+        </div>
+    ), [ExerciseHeader]);
+
+    if (groupedComparisons.totalChanges === 0) {
+        return (
+            <div className="space-y-3">
+                <div className="bg-zinc-800/50 rounded-lg p-3 border border-zinc-700/50">
+                    <h3 className="font-semibold text-lg mb-2 text-white">Visão Geral</h3>
+                    <p className="text-zinc-300 text-sm">
+                        Não foram encontradas mudanças significativas entre os treinos.
+                    </p>
+                </div>
+                <div className="bg-zinc-800/30 rounded-lg p-4 border border-zinc-700/50 text-center">
+                    <div className="inline-flex items-center justify-center w-12 h-12 bg-green-500/20 rounded-full mb-3">
+                        <CheckCircle size={24} className="text-green-500" />
+                    </div>
+                    <h3 className="text-lg font-semibold mb-2 text-white">Consistência mantida!</h3>
+                    <p className="text-zinc-400 text-sm leading-relaxed">
+                        Não foram encontradas mudanças significativas entre este treino e o anterior.
+                        Continue mantendo essa consistência!
+                    </p>
+                </div>
+            </div>
+        );
+    }
+
+    return (
+        <div className="space-y-3">
+            {/* Summary header */}
+            <div className="bg-zinc-800/50 rounded-lg p-3 border border-zinc-700/50">
+                <h3 className="font-semibold text-lg mb-2 text-white">Visão Geral</h3>
+                <div className="flex items-center gap-3">
+                    <div className="flex items-center justify-center w-6 h-6 bg-blue-500/20 rounded-full flex-shrink-0">
+                        <span className="text-blue-400 font-semibold text-xs">{groupedComparisons.totalChanges}</span>
+                    </div>
+                    <p className="text-zinc-300 text-sm">
+                        {groupedComparisons.totalChanges === 1 
+                            ? 'mudança identificada entre os treinos.'
+                            : 'mudanças identificadas entre os treinos.'
+                        }
+                    </p>
+                </div>
+            </div>
+
+            {/* Render sections */}
+            {(['performance', 'load', 'status'] as const).map((sectionType) => {
+                const items = groupedComparisons[sectionType];
+                if (items.length === 0) return null;
+
+                const config = SECTION_CONFIG[sectionType];
+                
+                return (
+                    <div key={sectionType} className="bg-zinc-800/30 rounded-lg p-3 border border-zinc-700/50">
+                        <div className="flex items-center gap-3 mb-3">
+                            <div className={`w-2 h-2 rounded-full ${config.textColor.replace('text-', 'bg-')}`}></div>
+                            <h3 className="font-semibold text-base text-white">
+                                {config.title}
+                            </h3>
+                            <div className="flex items-center justify-center min-w-[18px] h-4 px-1 bg-zinc-700/50 text-zinc-300 text-xs font-medium rounded-full">
+                                {items.length}
+                            </div>
+                        </div>
+                        {sectionType === 'performance' && <RepetitionsSection items={items} />}
+                        {sectionType === 'load' && <LoadSection items={items} />}
+                        {sectionType === 'status' && <StatusSection items={items} />}
+                    </div>
+                );
+            })}
         </div>
     );
 } 

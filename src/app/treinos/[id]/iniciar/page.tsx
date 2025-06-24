@@ -674,11 +674,11 @@ export default function StartWorkoutPage({ params }: { params: Promise<{ id: str
                         </p>
                     </DialogHeader>
 
-                    <div className="px-4 py-4 overflow-y-auto">
+                    <div className="px-3 py-4 overflow-y-auto">
                         {renderWorkoutSummary(lastWorkoutRecord, newWorkoutRecord)}
                     </div>
 
-                    <div className="px-4 py-4 border-t border-zinc-800">
+                    <div className="px-3 py-4 border-t border-zinc-800">
                         <button
                             onClick={returnToWorkouts}
                             className="w-full bg-red-600 py-3 rounded-lg font-medium hover:bg-red-700 transition-colors duration-300"
